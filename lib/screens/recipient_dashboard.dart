@@ -32,7 +32,10 @@ class RecipientDashboard extends StatelessWidget {
                 stream:
                     FirebaseFirestore.instance
                         .collection('certificates')
-                        .where('userId', isEqualTo: userId)
+                        .where(
+                          'recipientEmail',
+                          isEqualTo: FirebaseAuth.instance.currentUser?.email,
+                        )
                         .orderBy('date', descending: true)
                         .snapshots(),
                 builder: (context, snapshot) {
