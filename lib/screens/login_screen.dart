@@ -1,36 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'recipient_dashboard.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  Future<void> signInWithGoogle(BuildContext context) async {
-    await GoogleSignIn().signOut();
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-    debugPrint('googleUser: $googleUser');
-    if (!context.mounted) return;
-    if (googleUser == null ||
-        !googleUser.email.endsWith('@student.upm.edu.my')) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('UPM email required.')));
-      return;
+  void _handleLogin(BuildContext context) async {
+    final authService = AuthService();
+    final role = await authService.signInWithGoogle();
+
+    if (role == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login failed or invalid email.')),
+      );
+    } else if (role == 'ca') {
+      Navigator.pushReplacementNamed(context, '/ca_dashboard');
+    } else {
+      Navigator.pushReplacementNamed(context, '/recipient_dashboard');
     }
-
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      idToken: googleAuth.idToken,
-      accessToken: googleAuth.accessToken,
-    );
-
-    await FirebaseAuth.instance.signInWithCredential(credential);
-    if (!context.mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const RecipientDashboard()),
-    );
   }
 
   @override
@@ -38,10 +24,9 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
       body: Center(
-        child: ElevatedButton.icon(
-          icon: const Icon(Icons.login),
-          label: const Text('Sign in with Google (UPM)'),
-          onPressed: () => signInWithGoogle(context),
+        child: ElevatedButton(
+          onPressed: () => _handleLogin(context),
+          child: const Text('Sign in with Google'),
         ),
       ),
     );
