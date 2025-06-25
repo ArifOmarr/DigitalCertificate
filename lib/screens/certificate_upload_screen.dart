@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import '../models/certificate.dart';
+import '../services/certificate_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../screens/login_screen.dart';
 
 class CertificateUploadScreen extends StatefulWidget {
   const CertificateUploadScreen({super.key});
@@ -196,6 +200,16 @@ class _CertificateUploadScreenState extends State<CertificateUploadScreen> {
         _errorMessage = null;
       });
 
+      // Upload certificate to Firestore
+      final cert = Certificate(
+        name: _recipientNameController.text.trim(),
+        organization: _issuerNameController.text.trim(),
+        purpose: _certificateTypeController.text.trim(),
+        issueDate: DateTime.tryParse(_dateIssuedController.text.trim()) ?? DateTime.now(),
+        expiryDate: DateTime.now().add(const Duration(days: 365)), // You can adjust this logic
+      );
+      await CertificateService().uploadCertificate(cert);
+
       // Simulate upload delay
       await Future.delayed(const Duration(seconds: 2));
 
@@ -267,6 +281,20 @@ class _CertificateUploadScreenState extends State<CertificateUploadScreen> {
         foregroundColor: Colors.black87,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              if (!context.mounted) return;
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (route) => false,
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

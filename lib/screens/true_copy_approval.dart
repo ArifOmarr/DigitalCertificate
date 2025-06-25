@@ -32,7 +32,14 @@ class TrueCopyApprovalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('True Copy Approval Requests')),
+      backgroundColor: const Color(0xfff0f0f0),
+      appBar: AppBar(
+        title: const Text('True Copy Approval Requests'),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 2,
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream:
             FirebaseFirestore.instance

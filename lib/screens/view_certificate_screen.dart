@@ -58,25 +58,41 @@ class _ViewCertificateScreenState extends State<ViewCertificateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("View Certificate")),
+      backgroundColor: const Color(0xfff0f0f0),
+      appBar: AppBar(
+        title: const Text("View Certificate"),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 2,
+      ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: _otpController,
-              decoration: InputDecoration(labelText: "Enter OTP"),
+              decoration: const InputDecoration(labelText: "Enter OTP"),
               keyboardType: TextInputType.number,
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               onPressed: verifyOtp,
-              child: Text("Verify"),
+              child: const Text("Verify"),
             ),
             if (statusMessage != null) Text(statusMessage!),
             if (certificateData != null) ...[
-              SizedBox(height: 20),
-              Text("Certificate ID: ${certificateData!['certificateId']}"),
-              Text("Issued to: ${certificateData!['issuedTo']}"),
+              const SizedBox(height: 20),
+              Text("Certificate ID: "+certificateData!["certificateId"]),
+              Text("Issued to: "+certificateData!["issuedTo"]),
             ]
           ],
         ),

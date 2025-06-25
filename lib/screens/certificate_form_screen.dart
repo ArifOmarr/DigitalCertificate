@@ -73,7 +73,14 @@ class _CertificateFormScreenState extends State<CertificateFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Certificate Generator')),
+      backgroundColor: const Color(0xfff0f0f0),
+      appBar: AppBar(
+        title: const Text('Certificate Generator'),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 2,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -114,8 +121,17 @@ class _CertificateFormScreenState extends State<CertificateFormScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 onPressed: _submitForm,
-                child: Text('Generate Certificate'),
+                child: const Text('Generate Certificate'),
               ),
 
             ],

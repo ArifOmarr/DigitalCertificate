@@ -42,17 +42,33 @@ class _ShareCertificateScreenState extends State<ShareCertificateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Generate Secure Link")),
+      backgroundColor: const Color(0xfff0f0f0),
+      appBar: AppBar(
+        title: const Text("Generate Secure Link"),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 2,
+      ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               onPressed: generateSecureLink,
-              child: Text("Generate Secure Link"),
+              child: const Text("Generate Secure Link"),
             ),
             if (generatedLink != null) ...[
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text("Share this link: $generatedLink"),
               Text("OTP: $generatedOtp"),
             ]

@@ -7,6 +7,7 @@ class LoginScreen extends StatelessWidget {
   void _handleLogin(BuildContext context) async {
     final authService = AuthService();
     final role = await authService.signInWithGoogle();
+    print('[LoginScreen] signInWithGoogle returned role: $role');
 
     if (role == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -22,9 +23,25 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      backgroundColor: const Color(0xfff0f0f0),
+      appBar: AppBar(
+        title: const Text('Login'),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 2,
+      ),
       body: Center(
         child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.teal,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           onPressed: () => _handleLogin(context),
           child: const Text('Sign in with Google'),
         ),

@@ -23,6 +23,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const AuthWrapper(),
+      routes: {
+        '/ca_dashboard': (context) => const CertificateUploadScreen(),
+        '/recipient_dashboard': (context) => const RecipientDashboard(),
+      },
     );
   }
 }

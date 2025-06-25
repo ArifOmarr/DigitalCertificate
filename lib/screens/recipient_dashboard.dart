@@ -12,8 +12,13 @@ class RecipientDashboard extends StatelessWidget {
     debugPrint('Current User UID: $userId');
 
     return Scaffold(
+      backgroundColor: const Color(0xfff0f0f0),
       appBar: AppBar(
         title: const Text('Recipient Dashboard'),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 2,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -33,11 +38,6 @@ class RecipientDashboard extends StatelessWidget {
                 stream:
                     FirebaseFirestore.instance
                         .collection('certificates')
-                        .where(
-                          'recipientEmail',
-                          isEqualTo: FirebaseAuth.instance.currentUser?.email,
-                        )
-                        .orderBy('date', descending: true)
                         .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -62,9 +62,11 @@ class RecipientDashboard extends StatelessWidget {
                       itemCount: docs.length,
                       itemBuilder: (context, index) {
                         final cert = docs[index];
-                        final title = cert['title'] ?? 'Untitled Certificate';
-                        final date = cert['date'] ?? 'Unknown date';
-                        final fileUrl = cert['fileUrl'] ?? '';
+                        final name = cert['name'] ?? 'No Name';
+                        final organization = cert['organization'] ?? 'No Organization';
+                        final purpose = cert['purpose'] ?? 'No Purpose';
+                        final issueDate = cert['issueDate'] ?? 'No Issue Date';
+                        final expiryDate = cert['expiryDate'] ?? 'No Expiry Date';
 
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -78,30 +80,20 @@ class RecipientDashboard extends StatelessWidget {
                               color: Colors.red,
                             ),
                             title: Text(
-                              title,
+                              name,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            subtitle: Text('Issued on: $date'),
-                            trailing:
-                                fileUrl.isNotEmpty
-                                    ? IconButton(
-                                      icon: const Icon(Icons.open_in_new),
-                                      tooltip: 'View Certificate',
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Certificate URL: $fileUrl',
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                    : null,
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Organization: $organization'),
+                                Text('Purpose: $purpose'),
+                                Text('Issued: $issueDate'),
+                                Text('Expires: $expiryDate'),
+                              ],
+                            ),
                           ),
                         );
                       },
