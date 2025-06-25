@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'certificate_upload_screen.dart';
 
 class RecipientDashboard extends StatelessWidget {
   const RecipientDashboard({super.key});
@@ -89,7 +90,6 @@ class RecipientDashboard extends StatelessWidget {
                                       icon: const Icon(Icons.open_in_new),
                                       tooltip: 'View Certificate',
                                       onPressed: () {
-                                        // Optional: show message or open URL with url_launcher
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -109,6 +109,18 @@ class RecipientDashboard extends StatelessWidget {
                   );
                 },
               ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CertificateUploadScreen(),
+            ),
+          );
+        },
+        tooltip: 'Upload Certificate',
+        child: const Icon(Icons.upload_file),
+      ),
     );
   }
 }
