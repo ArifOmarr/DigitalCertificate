@@ -32,7 +32,6 @@ class RecipientDashboard extends StatelessWidget {
         final _formKey = GlobalKey<FormState>();
         String? _purpose;
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Request New Certificate'),
           content: Form(
             key: _formKey,
@@ -48,11 +47,6 @@ class RecipientDashboard extends StatelessWidget {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
               onPressed: () async {
                 if (_formKey.currentState?.validate() ?? false) {
                   _formKey.currentState?.save();
@@ -78,9 +72,7 @@ class RecipientDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      backgroundColor: Colors.teal[50],
       appBar: AppBar(
         title: const Text('Recipient Dashboard'),
         backgroundColor: Colors.teal,
@@ -101,68 +93,29 @@ class RecipientDashboard extends StatelessWidget {
           if (snapshot.data != 'recipient') {
             return const Center(child: Text('Access denied.'));
           }
-          return SingleChildScrollView(
+          return ListView(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.teal[200],
-                      child: Icon(Icons.person, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Welcome, ${user?.email ?? ''}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.folder),
-                  label: const Text('View & Manage My Certificates'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () => _goToCertificates(context),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.request_page),
-                  label: const Text('Request New Certificate'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () => _showRequestDialog(context),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.upload_file),
-                  label: const Text('Upload Physical Certificate'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () => _goToUpload(context),
-                ),
-              ],
-            ),
+            children: [
+              const Text('Welcome, Recipient!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.folder),
+                label: const Text('View & Manage My Certificates'),
+                onPressed: () => _goToCertificates(context),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.request_page),
+                label: const Text('Request New Certificate'),
+                onPressed: () => _showRequestDialog(context),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.upload_file),
+                label: const Text('Upload Physical Certificate'),
+                onPressed: () => _goToUpload(context),
+              ),
+            ],
           );
         },
       ),

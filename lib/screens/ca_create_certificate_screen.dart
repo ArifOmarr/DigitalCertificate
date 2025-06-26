@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class CaCreateCertificateScreen extends StatefulWidget {
   const CaCreateCertificateScreen({super.key});
@@ -120,23 +122,51 @@ class _CaCreateCertificateScreenState extends State<CaCreateCertificateScreen> {
             ),
           ),
         );
-        final output = await getTemporaryDirectory();
-        final file = File('${output.path}/certificate_${DateTime.now().millisecondsSinceEpoch}.pdf');
-        await file.writeAsBytes(await pdf.save());
+        
         final ref = FirebaseStorage.instance
             .ref()
             .child('certificates')
             .child('${DateTime.now().millisecondsSinceEpoch}_${_recipientName}.pdf');
-        await ref.putFile(file);
+        
+        // Handle PDF upload differently for web vs mobile
+        if (kIsWeb) {
+          // Web: Use putData with Uint8List
+          final pdfBytes = await pdf.save();
+          await ref.putData(pdfBytes);
+        } else {
+          // Mobile: Use putFile with File
+          final output = await getTemporaryDirectory();
+          final file = File('${output.path}/certificate_${DateTime.now().millisecondsSinceEpoch}.pdf');
+          await file.writeAsBytes(await pdf.save());
+          await ref.putFile(file);
+        }
+        
         pdfUrl = await ref.getDownloadURL();
         signature = randomSignature;
       } else if (_pdfFile != null) {
-        final file = File(_pdfFile!.path!);
         final ref = FirebaseStorage.instance
             .ref()
             .child('certificates')
             .child('${DateTime.now().millisecondsSinceEpoch}_${_pdfFile!.name}');
-        await ref.putFile(file);
+        
+        // Handle file upload differently for web vs mobile
+        if (kIsWeb) {
+          // Web: Use putData with Uint8List
+          if (_pdfFile!.bytes != null) {
+            await ref.putData(_pdfFile!.bytes!);
+          } else {
+            throw Exception('File bytes not available');
+          }
+        } else {
+          // Mobile: Use putFile with File
+          if (_pdfFile!.path != null) {
+            final file = File(_pdfFile!.path!);
+            await ref.putFile(file);
+          } else {
+            throw Exception('File path not available');
+          }
+        }
+        
         pdfUrl = await ref.getDownloadURL();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

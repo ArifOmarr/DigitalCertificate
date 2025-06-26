@@ -9,6 +9,13 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#42a5f5">
     <link rel="icon" type="image/png" href="icons/Icon-192.png"/>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js"></script>
+    
     <script>
       // Prevents mobile browsers from zooming in on input fields.
       document.addEventListener('touchstart', function(event) {
@@ -16,6 +23,14 @@
           event.preventDefault();
         }
       }, { passive: false });
+      
+      // Web-specific configurations for file uploads
+      window.addEventListener('load', function() {
+        // Enable file input for web
+        if (window.flutter_inappwebview) {
+          window.flutter_inappwebview.callHandler('enableFileUpload');
+        }
+      });
     </script>
   </head>
   <body>

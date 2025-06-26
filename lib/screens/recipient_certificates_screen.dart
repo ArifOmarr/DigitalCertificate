@@ -202,17 +202,30 @@ class RecipientCertificatesScreen extends StatelessWidget {
 
   Future<void> openPdfFromUrl(String url, BuildContext context) async {
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final bytes = response.bodyBytes;
-        final dir = await getTemporaryDirectory();
-        final file = File('${dir.path}/temp_${DateTime.now().millisecondsSinceEpoch}.pdf');
-        await file.writeAsBytes(bytes);
-        await OpenFile.open(file.path);
+      if (kIsWeb) {
+        // Web: Open in new tab
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open PDF in browser')),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to download PDF.')),
-        );
+        // Mobile: Download and open with local app
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final bytes = response.bodyBytes;
+          final dir = await getTemporaryDirectory();
+          final file = File('${dir.path}/temp_${DateTime.now().millisecondsSinceEpoch}.pdf');
+          await file.writeAsBytes(bytes);
+          await OpenFile.open(file.path);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to download PDF.')),
+          );
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class RecipientCertificateUploadScreen extends StatefulWidget {
   const RecipientCertificateUploadScreen({super.key});
@@ -41,12 +43,30 @@ class _RecipientCertificateUploadScreenState extends State<RecipientCertificateU
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('Not logged in');
-      final file = File(_file!.path!);
+      
       final ref = FirebaseStorage.instance
           .ref()
           .child('physical_certificate_uploads')
           .child('${DateTime.now().millisecondsSinceEpoch}_${_file!.name}');
-      await ref.putFile(file);
+      
+      // Handle file upload differently for web vs mobile
+      if (kIsWeb) {
+        // Web: Use putData with Uint8List
+        if (_file!.bytes != null) {
+          await ref.putData(_file!.bytes!);
+        } else {
+          throw Exception('File bytes not available');
+        }
+      } else {
+        // Mobile: Use putFile with File
+        if (_file!.path != null) {
+          final file = File(_file!.path!);
+          await ref.putFile(file);
+        } else {
+          throw Exception('File path not available');
+        }
+      }
+      
       final fileUrl = await ref.getDownloadURL();
       await FirebaseFirestore.instance.collection('physical_certificate_uploads').add({
         'name': _name,
