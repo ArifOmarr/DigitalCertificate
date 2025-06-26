@@ -1,118 +1,171 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'certificate_upload_screen.dart';
 
 class RecipientDashboard extends StatelessWidget {
   const RecipientDashboard({super.key});
 
+  Future<String?> _getRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    return doc.data()?['role'] as String?;
+  }
+
+  void _logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  }
+
+  void _goToCertificates(BuildContext context) {
+    Navigator.pushNamed(context, '/recipient_certificates');
+  }
+
+  void _goToUpload(BuildContext context) {
+    Navigator.pushNamed(context, '/recipient_upload');
+  }
+
+  void _showRequestDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final _formKey = GlobalKey<FormState>();
+        String? _purpose;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Request New Certificate'),
+          content: Form(
+            key: _formKey,
+            child: TextFormField(
+              decoration: const InputDecoration(labelText: 'Purpose/Reason'),
+              validator: (v) => v == null || v.isEmpty ? 'Enter purpose' : null,
+              onSaved: (v) => _purpose = v,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () async {
+                if (_formKey.currentState?.validate() ?? false) {
+                  _formKey.currentState?.save();
+                  final user = FirebaseAuth.instance.currentUser;
+                  await FirebaseFirestore.instance.collection('certificate_requests').add({
+                    'requestedBy': user?.email,
+                    'purpose': _purpose,
+                    'requestedAt': FieldValue.serverTimestamp(),
+                  });
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Request submitted!')),
+                  );
+                }
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    debugPrint('Current User UID: $userId');
-
+    final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      backgroundColor: const Color(0xfff0f0f0),
+      backgroundColor: Colors.teal[50],
       appBar: AppBar(
         title: const Text('Recipient Dashboard'),
         backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-        centerTitle: true,
-        elevation: 2,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            },
+            tooltip: 'Log out',
+            onPressed: () => _logout(context),
           ),
         ],
       ),
-      body:
-          userId == null
-              ? const Center(child: Text('User not logged in.'))
-              : StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance
-                        .collection('certificates')
-                        .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No certificates found.\nYour issued certificates will appear here.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    );
-                  }
-
-                  final docs = snapshot.data!.docs;
-
-                  return Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: ListView.builder(
-                      itemCount: docs.length,
-                      itemBuilder: (context, index) {
-                        final cert = docs[index];
-                        final name = cert['name'] ?? 'No Name';
-                        final organization = cert['organization'] ?? 'No Organization';
-                        final purpose = cert['purpose'] ?? 'No Purpose';
-                        final issueDate = cert['issueDate'] ?? 'No Issue Date';
-                        final expiryDate = cert['expiryDate'] ?? 'No Expiry Date';
-
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          elevation: 3,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.picture_as_pdf,
-                              color: Colors.red,
-                            ),
-                            title: Text(
-                              name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Organization: $organization'),
-                                Text('Purpose: $purpose'),
-                                Text('Issued: $issueDate'),
-                                Text('Expires: $expiryDate'),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+      body: FutureBuilder<String?>(
+        future: _getRole(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.data != 'recipient') {
+            return const Center(child: Text('Access denied.'));
+          }
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.teal[200],
+                      child: Icon(Icons.person, color: Colors.white),
                     ),
-                  );
-                },
-              ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CertificateUploadScreen(),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Welcome, ${user?.email ?? ''}',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.folder),
+                  label: const Text('View & Manage My Certificates'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => _goToCertificates(context),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.request_page),
+                  label: const Text('Request New Certificate'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => _showRequestDialog(context),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.upload_file),
+                  label: const Text('Upload Physical Certificate'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => _goToUpload(context),
+                ),
+              ],
             ),
           );
         },
-        tooltip: 'Upload Certificate',
-        child: const Icon(Icons.upload_file),
       ),
     );
   }
-}
+} 
