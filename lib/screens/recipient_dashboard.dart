@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:ui';
 
 class RecipientDashboard extends StatelessWidget {
   const RecipientDashboard({super.key});
@@ -129,111 +130,205 @@ class RecipientDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.teal[200],
-                      child: Icon(Icons.person, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Welcome, ${user?.email ?? ''}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                // Greeting Banner
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  color: Colors.teal[400],
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 32,
+                          backgroundColor: Colors.white,
+                          child: Icon(Icons.person, color: Colors.teal, size: 36),
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome Back!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                user?.email ?? '',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // Quick Actions Column
+                Text(
+                  'Quick Actions',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal[800],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: _QuickActionCard(
+                        icon: Icons.folder,
+                        label: 'My Certificates',
+                        color: Colors.teal,
+                        onTap: () => _goToCertificates(context),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _QuickActionCard(
+                        icon: Icons.request_page,
+                        label: 'Request Certificate',
+                        color: Colors.orange,
+                        onTap: () => _showRequestDialog(context),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _QuickActionCard(
+                        icon: Icons.upload_file,
+                        label: 'Upload Certificate',
+                        color: Colors.blue,
+                        onTap: () => _goToUpload(context),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _QuickActionCard(
+                        icon: Icons.history,
+                        label: 'Donation History',
+                        color: Colors.deepPurple,
+                        onTap: () => _goToDonationHistory(context),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _QuickActionCard(
+                        icon: Icons.favorite,
+                        label: 'Donate',
+                        color: Colors.pink,
+                        onTap: () => _goToDonation(context),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.folder),
-                  label: const Text('View & Manage My Certificates'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 32),
+                // Info Section
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.teal, size: 28),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Manage your digital certificates easily and securely. For help, contact support.',
+                            style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  onPressed: () => _goToCertificates(context),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.request_page),
-                  label: const Text('Request New Certificate'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () => _showRequestDialog(context),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.upload_file),
-                  label: const Text('Upload Physical Certificate'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () => _goToUpload(context),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.favorite),
-                  label: const Text('Support Our Project'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.pink,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () => _goToDonation(context),
-                ),
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  icon: const Icon(Icons.history),
-                  label: const Text('View Donation History'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.teal,
-                    textStyle: const TextStyle(fontSize: 14),
-                  ),
-                  onPressed: () => _goToDonationHistory(context),
                 ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _QuickActionCard extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  const _QuickActionCard({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+  @override
+  State<_QuickActionCard> createState() => _QuickActionCardState();
+}
+
+class _QuickActionCardState extends State<_QuickActionCard> {
+  bool _pressed = false;
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: widget.color,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: _pressed
+            ? [BoxShadow(color: widget.color.withOpacity(0.18), blurRadius: 16, offset: Offset(0, 6))]
+            : [],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: widget.onTap,
+          onHighlightChanged: (v) => setState(() => _pressed = v),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(widget.icon, color: Colors.white, size: 32),
+                const SizedBox(height: 14),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
