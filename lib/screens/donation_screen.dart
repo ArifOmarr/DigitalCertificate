@@ -216,6 +216,10 @@ class _DonationScreenState extends State<DonationScreen> {
         title: Text('Support Our Project'),
         backgroundColor: Colors.teal,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(24),

@@ -51,6 +51,10 @@ class _DonationHistoryScreenState extends State<DonationHistoryScreen> {
         title: Text('Donation History'),
         backgroundColor: Colors.teal,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: [
           IconButton(icon: Icon(Icons.refresh), onPressed: _loadDonationData),
         ],

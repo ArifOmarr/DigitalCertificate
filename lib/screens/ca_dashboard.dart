@@ -8,7 +8,11 @@ class CaDashboard extends StatelessWidget {
   Future<String?> _getRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
     return doc.data()?['role'] as String?;
   }
 
@@ -37,10 +41,11 @@ class CaDashboard extends StatelessWidget {
           expand: false,
           builder: (context, scrollController) {
             return StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('certificate_requests')
-                  .orderBy('requestedAt', descending: true)
-                  .snapshots(),
+              stream:
+                  FirebaseFirestore.instance
+                      .collection('certificate_requests')
+                      .orderBy('requestedAt', descending: true)
+                      .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -57,10 +62,17 @@ class CaDashboard extends StatelessWidget {
                     final data = doc.data() as Map<String, dynamic>;
                     final status = data['status'] ?? 'Pending';
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: ListTile(
-                        title: Text('Requested by: ${data['requestedBy'] ?? ''}'),
-                        subtitle: Text('Purpose: ${data['purpose'] ?? ''}\nRequested at: ${data['requestedAt'] != null ? data['requestedAt'].toDate().toString().split(' ')[0] : ''}\nStatus: $status'),
+                        title: Text(
+                          'Requested by: ${data['requestedBy'] ?? ''}',
+                        ),
+                        subtitle: Text(
+                          'Purpose: ${data['purpose'] ?? ''}\nRequested at: ${data['requestedAt'] != null ? data['requestedAt'].toDate().toString().split(' ')[0] : ''}\nStatus: $status',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -69,18 +81,27 @@ class CaDashboard extends StatelessWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.teal,
                                   foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
                                 onPressed: () async {
-                                  await doc.reference.update({'status': 'Complete'});
+                                  await doc.reference.update({
+                                    'status': 'Complete',
+                                  });
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Marked as complete.')),
+                                    const SnackBar(
+                                      content: Text('Marked as complete.'),
+                                    ),
                                   );
                                 },
                                 child: const Text('Mark Complete'),
                               ),
                             if (status == 'Complete')
-                              const Icon(Icons.check_circle, color: Colors.green),
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                              ),
                           ],
                         ),
                       ),
@@ -103,6 +124,36 @@ class CaDashboard extends StatelessWidget {
       appBar: AppBar(
         title: const Text('CA Dashboard'),
         backgroundColor: Colors.teal,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder:
+                  (context) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close dialog
+                          _logout(context); // Logout
+                        },
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  ),
+            );
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -135,7 +186,10 @@ class CaDashboard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'Welcome, ${user?.email ?? ''}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -149,8 +203,13 @@ class CaDashboard extends StatelessWidget {
                     minimumSize: const Size.fromHeight(56),
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => _goToCreateCertificate(context),
                 ),
@@ -162,8 +221,13 @@ class CaDashboard extends StatelessWidget {
                     minimumSize: const Size.fromHeight(56),
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => _goToCertifyTrueCopies(context),
                 ),
@@ -175,18 +239,32 @@ class CaDashboard extends StatelessWidget {
                     minimumSize: const Size.fromHeight(56),
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => _showCertificateRequests(context),
                 ),
                 const SizedBox(height: 32),
-                const Text('Other Features:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Other Features:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
-                const Text('• Add recipient name, organization, purpose, issue/expiry dates.'),
+                const Text(
+                  '• Add recipient name, organization, purpose, issue/expiry dates.',
+                ),
                 const Text('• Generate or upload certificate PDFs.'),
-                const Text('• Digitally sign certificates (watermark/signature).'),
-                const Text('• Share certificates using secure, token-protected links.'),
+                const Text(
+                  '• Digitally sign certificates (watermark/signature).',
+                ),
+                const Text(
+                  '• Share certificates using secure, token-protected links.',
+                ),
               ],
             ),
           );
@@ -194,4 +272,4 @@ class CaDashboard extends StatelessWidget {
       ),
     );
   }
-} 
+}
