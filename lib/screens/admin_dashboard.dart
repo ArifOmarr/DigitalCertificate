@@ -391,18 +391,18 @@ class _ValidationRulesTabState extends State<ValidationRulesTab> {
         // Set default values
         setState(() {
           _requiredFields = {
-            'name': true,
-            'organization': true,
-            'purpose': true,
-            'issueDate': true,
-            'expiryDate': false,
+            'Name': true,
+            'Organization': true,
+            'Purpose': true,
+            'Issue Date': true,
+            'Expiry Date': false,
           };
           _fieldValidations = {
-            'name': 'min:2,max:100',
-            'organization': 'min:2,max:100',
-            'purpose': 'min:5,max:500',
-            'issueDate': 'future_date_allowed:false',
-            'expiryDate': 'future_date_required:true',
+            'Name': 'min:2,max:100',
+            'Organization': 'min:2,max:100',
+            'Purpose': 'min:5,max:500',
+            'Issue Date': 'future_date_allowed:false',
+            'ExpiryDate': 'future_date_required:true',
           };
           _isLoading = false;
         });
@@ -439,89 +439,138 @@ class _ValidationRulesTabState extends State<ValidationRulesTab> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Required Fields Configuration',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ..._requiredFields.entries.map(
-                      (entry) => CheckboxListTile(
-                        title: Text(entry.key),
-                        subtitle: Text('Certificate must have this field'),
-                        value: entry.value,
-                        onChanged: (value) {
-                          setState(() {
-                            _requiredFields[entry.key] = value ?? false;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
+    return Container(
+      color: Colors.teal[50],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Required Fields Section
+              Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Field Validation Rules',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.check_box, color: Colors.teal, size: 26),
+                          SizedBox(width: 10),
+                          Text(
+                            'Required Fields Configuration',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    ..._fieldValidations.entries.map(
-                      (entry) => ListTile(
-                        title: Text(entry.key),
-                        subtitle: Text(entry.value),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed:
-                              () => _editValidationRule(entry.key, entry.value),
+                      const SizedBox(height: 18),
+                      ..._requiredFields.entries.map(
+                        (entry) => SwitchListTile(
+                          title: Text(
+                            entry.key.isNotEmpty
+                              ? entry.key[0].toUpperCase() + entry.key.substring(1)
+                              : '',
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          subtitle: const Text('Certificate must have this field'),
+                          value: entry.value,
+                          activeColor: Colors.teal,
+                          onChanged: (value) {
+                            setState(() {
+                              _requiredFields[entry.key] = value;
+                            });
+                          },
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Field Validation Rules Section
+              Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.rule, color: Colors.teal, size: 26),
+                          SizedBox(width: 10),
+                          Text(
+                            'Field Validation Rules',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      ..._fieldValidations.entries.map(
+                        (entry) => Column(
+                          children: [
+                            ListTile(
+                              title: Text(
+                                entry.key.isNotEmpty
+                                  ? entry.key[0].toUpperCase() + entry.key.substring(1)
+                                  : '',
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                              subtitle: Text(entry.value),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.teal),
+                                onPressed: () => _editValidationRule(entry.key, entry.value),
+                              ),
+                            ),
+                            const Divider(height: 1),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _saveValidationRules,
+                  icon: const Icon(Icons.save, color: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                  ],
+                    textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                    elevation: 4,
+                  ),
+                  label: const Text('Save Validation Rules'),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _saveValidationRules,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text(
-                  'Save Validation Rules',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
