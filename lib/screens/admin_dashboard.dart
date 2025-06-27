@@ -199,23 +199,109 @@ class _UsersTab extends StatelessWidget {
             const Divider(),
             ...docs.map((doc) {
               final data = doc.data() as Map<String, dynamic>;
-              return ListTile(
-                title: Text(data['email'] ?? 'No Email'),
-                subtitle: Text('Role: ${data['role'] ?? 'unknown'}'),
-                trailing: DropdownButton<String>(
-                  value: data['role'],
-                  items: const [
-                    DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                    DropdownMenuItem(value: 'ca', child: Text('CA')),
-                    DropdownMenuItem(
-                      value: 'recipient',
-                      child: Text('Recipient'),
-                    ),
-                    DropdownMenuItem(value: 'viewer', child: Text('Viewer')),
-                  ],
-                  onChanged: (role) async {
-                    await doc.reference.update({'role': role});
-                  },
+              final validRoles = ['admin', 'ca', 'recipient', 'viewer'];
+              final currentRole =
+                  validRoles.contains(data['role']) ? data['role'] : 'admin';
+              Color roleColor;
+              switch (currentRole) {
+                case 'admin':
+                  roleColor = Colors.teal;
+                  break;
+                case 'ca':
+                  roleColor = Colors.blue;
+                  break;
+                case 'recipient':
+                  roleColor = Colors.green;
+                  break;
+                case 'viewer':
+                  roleColor = Colors.orange;
+                  break;
+                default:
+                  roleColor = Colors.grey;
+              }
+              return Card(
+                elevation: 4,
+                margin: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 18,
+                    horizontal: 20,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(Icons.email, color: Colors.teal[400]),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              data['email'] ?? 'No Email',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.verified_user,
+                                  color: roleColor,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  currentRole[0].toUpperCase() +
+                                      currentRole.substring(1),
+                                  style: TextStyle(
+                                    color: roleColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      DropdownButton<String>(
+                        value: currentRole,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'admin',
+                            child: Text('Admin'),
+                          ),
+                          DropdownMenuItem(value: 'ca', child: Text('CA')),
+                          DropdownMenuItem(
+                            value: 'recipient',
+                            child: Text('Recipient'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'viewer',
+                            child: Text('Viewer'),
+                          ),
+                        ],
+                        onChanged: (role) async {
+                          await doc.reference.update({'role': role});
+                        },
+                        dropdownColor: Colors.white,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        iconEnabledColor: roleColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }).toList(),
