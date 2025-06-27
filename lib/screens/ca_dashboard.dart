@@ -454,63 +454,182 @@ class CaDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.teal[200],
-                      child: Icon(Icons.verified, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Welcome, ${user?.email ?? ''}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                // Greeting Card
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  color: Colors.teal[400],
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 32,
+                          backgroundColor: Colors.white,
+                          child: Icon(Icons.verified, color: Colors.teal, size: 36),
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome, CA!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                user?.email ?? '',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // Modern Action Cards Grid
+                Text(
+                  'Actions',
+                  style: sectionHeaderStyle,
+                ),
+                const SizedBox(height: 18),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 24,
+                  runSpacing: 24,
+                  children: [
+                    _ModernActionCard(
+                      icon: Icons.add,
+                      label: 'Create/Issue Certificate',
+                      color: Colors.teal,
+                      onTap: () => _goToCreateCertificate(context),
+                    ),
+                    _ModernActionCard(
+                      icon: Icons.verified,
+                      label: 'Certify True Copies',
+                      color: Colors.orange,
+                      onTap: () => _goToCertifyTrueCopies(context),
+                    ),
+                    _ModernActionCard(
+                      icon: Icons.list_alt,
+                      label: 'View Certificate Requests',
+                      color: Colors.blue,
+                      onTap: () => _showCertificateRequests(context),
+                    ),
+                    _ModernActionCard(
+                      icon: Icons.business,
+                      label: 'Manage Client Profiles',
+                      color: Colors.deepPurple,
+                      onTap: () => _showClientProfiles(context),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        'Certificate Management',
-                        style: sectionHeaderStyle,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 32,
-                        runSpacing: 32,
-                        children: [
-                          _DashboardActionCard(
-                            icon: Icons.add,
-                            label: 'Create/Issue Certificate',
-                            onTap: () => _goToCreateCertificate(context),
-                          ),
-                          _DashboardActionCard(
-                            icon: Icons.verified,
-                            label: 'Certify True Copies',
-                            onTap: () => _goToCertifyTrueCopies(context),
-                          ),
-                          _DashboardActionCard(
-                            icon: Icons.list_alt,
-                            label: 'View Certificate Requests',
-                            onTap: () => _showCertificateRequests(context),
-                          ),
-                          _DashboardActionCard(
-                            icon: Icons.business,
-                            label: 'Manage Client Profiles',
-                            onTap: () => _showClientProfiles(context),
-                          ),
-                        ],
-                      ),
-                    ],
+                const SizedBox(height: 40),
+                // Issued Certificates Section
+                Text(
+                  'Issued Certificates',
+                  style: sectionHeaderStyle,
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('certificates')
+                          //.where('issuerId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                          //.orderBy('issueDate', descending: true)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        final certs = snapshot.data!.docs;
+                        if (certs.isEmpty) {
+                          return const Text(
+                            'No certificates issued yet.',
+                          );
+                        }
+                        return Column(
+                          children: List.generate(certs.length, (index) {
+                            final doc = certs[index];
+                            final data = doc.data() as Map<String, dynamic>;
+                            final revoked = data['revoked'] == true;
+                            final title = data['title'] ?? 'Untitled';
+                            final recipient = data['recipientEmail'] ?? 'Unknown';
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.teal[100],
+                                  child: Icon(Icons.description, color: Colors.teal[700]),
+                                ),
+                                title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                subtitle: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Recipient: $recipient'),
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      children: [
+                                        Chip(
+                                          label: Text(revoked ? 'Revoked' : 'Active'),
+                                          backgroundColor: revoked ? Colors.red[50] : Colors.green[50],
+                                          labelStyle: TextStyle(
+                                            color: revoked ? Colors.red[700] : Colors.green[700],
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.share,
+                                    color: Colors.teal,
+                                  ),
+                                  tooltip: 'Share Certificate',
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/share_certificate',
+                                      arguments: {
+                                        'certificateId': doc.id,
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          }),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -523,15 +642,17 @@ class CaDashboard extends StatelessWidget {
   }
 }
 
-class _DashboardActionCard extends StatelessWidget {
+class _ModernActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Color color;
   final VoidCallback onTap;
 
-  const _DashboardActionCard({
+  const _ModernActionCard({
     Key? key,
     required this.icon,
     required this.label,
+    required this.color,
     required this.onTap,
   }) : super(key: key);
 
@@ -541,38 +662,38 @@ class _DashboardActionCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        width: 220,
-        height: 180,
+        width: 180,
+        height: 140,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: color.withOpacity(0.12),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.teal.withOpacity(0.10),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              color: color.withOpacity(0.10),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
-          border: Border.all(color: Colors.teal[100]!, width: 2),
+          border: Border.all(color: color.withOpacity(0.18), width: 2),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 18),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, size: 56, color: Colors.teal[700]),
-            const SizedBox(height: 18),
+            Icon(icon, size: 40, color: color),
+            const SizedBox(height: 16),
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 19,
+              style: TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: color,
                 height: 1.2,
               ),
-              maxLines: 2,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
           ],
