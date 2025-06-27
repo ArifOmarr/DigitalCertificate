@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:ui';
 
 class ViewerDashboard extends StatelessWidget {
   const ViewerDashboard({super.key});
@@ -67,26 +68,54 @@ class ViewerDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.teal[200],
-                  child: Icon(Icons.visibility, color: Colors.white),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Welcome, ${user?.email ?? ''}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+            // Greeting Card
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              color: Colors.teal[400],
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.visibility, color: Colors.teal, size: 36),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Welcome, Viewer!',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            user?.email ?? '',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
+            // View Shared Certificates Button
             ElevatedButton.icon(
               icon: const Icon(Icons.visibility),
               label: const Text('View Shared Certificates'),
@@ -105,14 +134,116 @@ class ViewerDashboard extends StatelessWidget {
               onPressed: () => _goToSharedCertificates(context),
             ),
             const SizedBox(height: 32),
-            const Text(
-              'Viewer Features:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Viewer Features:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: const [
+                        Icon(Icons.visibility, color: Colors.teal, size: 22),
+                        SizedBox(width: 10),
+                        Text('View certificates shared with you.', style: TextStyle(fontSize: 15)),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: const [
+                        Icon(Icons.verified, color: Colors.teal, size: 22),
+                        SizedBox(width: 10),
+                        Text('Verify certificate authenticity.', style: TextStyle(fontSize: 15)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-            const Text('• View certificates shared with you.'),
-            const Text('• Verify certificate authenticity.'),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimatedActionCard extends StatefulWidget {
+  final VoidCallback onTap;
+  const _AnimatedActionCard({required this.onTap});
+  @override
+  State<_AnimatedActionCard> createState() => _AnimatedActionCardState();
+}
+
+class _AnimatedActionCardState extends State<_AnimatedActionCard> {
+  bool _pressed = false;
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: Colors.teal[50],
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: _pressed
+            ? [BoxShadow(color: Colors.teal.withOpacity(0.18), blurRadius: 16, offset: Offset(0, 6))]
+            : [],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: widget.onTap,
+          onHighlightChanged: (v) => setState(() => _pressed = v),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 18),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.teal[100],
+                  child: Icon(Icons.visibility, color: Colors.teal, size: 32),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'View Shared Certificates',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'See certificates shared with you',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 22),
+              ],
+            ),
+          ),
         ),
       ),
     );
