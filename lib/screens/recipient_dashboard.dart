@@ -103,6 +103,10 @@ class RecipientDashboard extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Recipient Dashboard'),
         backgroundColor: Colors.teal,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
