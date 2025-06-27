@@ -116,6 +116,279 @@ class CaDashboard extends StatelessWidget {
     );
   }
 
+  void _showClientProfiles(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: SizedBox(
+              width: 400,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.business, color: Colors.teal),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Client Profiles',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    SizedBox(
+                      height: 350,
+                      width: 350,
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream:
+                            FirebaseFirestore.instance
+                                .collection('clients')
+                                .orderBy('name')
+                                .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          final docs = snapshot.data!.docs;
+                          return ListView.builder(
+                            itemCount: docs.length + 1,
+                            itemBuilder: (context, index) {
+                              if (index == docs.length) {
+                                // Add new client button
+                                return ListTile(
+                                  leading: const Icon(
+                                    Icons.add,
+                                    color: Colors.teal,
+                                  ),
+                                  title: const Text('Add New Client'),
+                                  onTap: () async {
+                                    final nameController =
+                                        TextEditingController();
+                                    final orgController =
+                                        TextEditingController();
+                                    await showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: const Text('Add Client'),
+                                            content: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                TextField(
+                                                  controller: nameController,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText:
+                                                            'Client Name',
+                                                      ),
+                                                ),
+                                                TextField(
+                                                  controller: orgController,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText:
+                                                            'Organization/Type',
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(context),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () async {
+                                                  if (nameController
+                                                      .text
+                                                      .isNotEmpty) {
+                                                    await FirebaseFirestore
+                                                        .instance
+                                                        .collection('clients')
+                                                        .add({
+                                                          'name':
+                                                              nameController
+                                                                  .text,
+                                                          'organization':
+                                                              orgController
+                                                                  .text,
+                                                          'createdAt':
+                                                              FieldValue.serverTimestamp(),
+                                                        });
+                                                    Navigator.pop(context);
+                                                  }
+                                                },
+                                                child: const Text('Add'),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  },
+                                );
+                              }
+                              final doc = docs[index];
+                              final data = doc.data() as Map<String, dynamic>;
+                              return ListTile(
+                                leading: const Icon(
+                                  Icons.business,
+                                  color: Colors.teal,
+                                ),
+                                title: Text(data['name'] ?? ''),
+                                subtitle: Text(data['organization'] ?? ''),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.orange,
+                                      ),
+                                      onPressed: () async {
+                                        final nameController =
+                                            TextEditingController(
+                                              text: data['name'],
+                                            );
+                                        final orgController =
+                                            TextEditingController(
+                                              text: data['organization'],
+                                            );
+                                        await showDialog(
+                                          context: context,
+                                          builder:
+                                              (context) => AlertDialog(
+                                                title: const Text(
+                                                  'Edit Client',
+                                                ),
+                                                content: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    TextField(
+                                                      controller:
+                                                          nameController,
+                                                      decoration:
+                                                          const InputDecoration(
+                                                            labelText:
+                                                                'Client Name',
+                                                          ),
+                                                    ),
+                                                    TextField(
+                                                      controller: orgController,
+                                                      decoration:
+                                                          const InputDecoration(
+                                                            labelText:
+                                                                'Organization/Type',
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed:
+                                                        () => Navigator.pop(
+                                                          context,
+                                                        ),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed: () async {
+                                                      if (nameController
+                                                          .text
+                                                          .isNotEmpty) {
+                                                        await doc.reference
+                                                            .update({
+                                                              'name':
+                                                                  nameController
+                                                                      .text,
+                                                              'organization':
+                                                                  orgController
+                                                                      .text,
+                                                            });
+                                                        Navigator.pop(context);
+                                                      }
+                                                    },
+                                                    child: const Text('Save'),
+                                                  ),
+                                                ],
+                                              ),
+                                        );
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () async {
+                                        final confirm = await showDialog(
+                                          context: context,
+                                          builder:
+                                              (context) => AlertDialog(
+                                                title: const Text(
+                                                  'Delete Client',
+                                                ),
+                                                content: const Text(
+                                                  'Are you sure you want to delete this client?',
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed:
+                                                        () => Navigator.pop(
+                                                          context,
+                                                          false,
+                                                        ),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed:
+                                                        () => Navigator.pop(
+                                                          context,
+                                                          true,
+                                                        ),
+                                                    child: const Text('Delete'),
+                                                  ),
+                                                ],
+                                              ),
+                                        );
+                                        if (confirm == true) {
+                                          await doc.reference.delete();
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -171,6 +444,11 @@ class CaDashboard extends StatelessWidget {
           if (snapshot.data != 'ca') {
             return const Center(child: Text('Access denied.'));
           }
+          final sectionHeaderStyle = TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.teal[800],
+          );
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -196,79 +474,109 @@ class CaDashboard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create/Issue Certificate'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Certificate Management',
+                        style: sectionHeaderStyle,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 32,
+                        runSpacing: 32,
+                        children: [
+                          _DashboardActionCard(
+                            icon: Icons.add,
+                            label: 'Create/Issue Certificate',
+                            onTap: () => _goToCreateCertificate(context),
+                          ),
+                          _DashboardActionCard(
+                            icon: Icons.verified,
+                            label: 'Certify True Copies',
+                            onTap: () => _goToCertifyTrueCopies(context),
+                          ),
+                          _DashboardActionCard(
+                            icon: Icons.list_alt,
+                            label: 'View Certificate Requests',
+                            onTap: () => _showCertificateRequests(context),
+                          ),
+                          _DashboardActionCard(
+                            icon: Icons.business,
+                            label: 'Manage Client Profiles',
+                            onTap: () => _showClientProfiles(context),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  onPressed: () => _goToCreateCertificate(context),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.verified),
-                  label: const Text('Certify True Copies'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () => _goToCertifyTrueCopies(context),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.request_page),
-                  label: const Text('View Certificate Requests'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () => _showCertificateRequests(context),
                 ),
                 const SizedBox(height: 32),
-                const Text(
-                  'Other Features:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '• Add recipient name, organization, purpose, issue/expiry dates.',
-                ),
-                const Text('• Generate or upload certificate PDFs.'),
-                const Text(
-                  '• Digitally sign certificates (watermark/signature).',
-                ),
-                const Text(
-                  '• Share certificates using secure, token-protected links.',
-                ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _DashboardActionCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _DashboardActionCard({
+    Key? key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 220,
+        height: 180,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.teal.withOpacity(0.10),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+          border: Border.all(color: Colors.teal[100]!, width: 2),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 18),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(icon, size: 56, color: Colors.teal[700]),
+            const SizedBox(height: 18),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
