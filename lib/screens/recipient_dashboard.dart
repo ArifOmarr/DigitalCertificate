@@ -8,7 +8,11 @@ class RecipientDashboard extends StatelessWidget {
   Future<String?> _getRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
     return doc.data()?['role'] as String?;
   }
 
@@ -25,6 +29,14 @@ class RecipientDashboard extends StatelessWidget {
     Navigator.pushNamed(context, '/recipient_upload');
   }
 
+  void _goToDonation(BuildContext context) {
+    Navigator.pushNamed(context, '/donation');
+  }
+
+  void _goToDonationHistory(BuildContext context) {
+    Navigator.pushNamed(context, '/donation_history');
+  }
+
   void _showRequestDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -32,7 +44,9 @@ class RecipientDashboard extends StatelessWidget {
         final _formKey = GlobalKey<FormState>();
         String? _purpose;
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text('Request New Certificate'),
           content: Form(
             key: _formKey,
@@ -51,17 +65,21 @@ class RecipientDashboard extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               onPressed: () async {
                 if (_formKey.currentState?.validate() ?? false) {
                   _formKey.currentState?.save();
                   final user = FirebaseAuth.instance.currentUser;
-                  await FirebaseFirestore.instance.collection('certificate_requests').add({
-                    'requestedBy': user?.email,
-                    'purpose': _purpose,
-                    'requestedAt': FieldValue.serverTimestamp(),
-                  });
+                  await FirebaseFirestore.instance
+                      .collection('certificate_requests')
+                      .add({
+                        'requestedBy': user?.email,
+                        'purpose': _purpose,
+                        'requestedAt': FieldValue.serverTimestamp(),
+                      });
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Request submitted!')),
@@ -79,6 +97,7 @@ class RecipientDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: Colors.teal[50],
       appBar: AppBar(
@@ -116,7 +135,10 @@ class RecipientDashboard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'Welcome, ${user?.email ?? ''}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -130,8 +152,13 @@ class RecipientDashboard extends StatelessWidget {
                     minimumSize: const Size.fromHeight(56),
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => _goToCertificates(context),
                 ),
@@ -143,8 +170,13 @@ class RecipientDashboard extends StatelessWidget {
                     minimumSize: const Size.fromHeight(56),
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => _showRequestDialog(context),
                 ),
@@ -156,10 +188,43 @@ class RecipientDashboard extends StatelessWidget {
                     minimumSize: const Size.fromHeight(56),
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => _goToUpload(context),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.favorite),
+                  label: const Text('Support Our Project'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    backgroundColor: Colors.pink,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => _goToDonation(context),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  icon: const Icon(Icons.history),
+                  label: const Text('View Donation History'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.teal,
+                    textStyle: const TextStyle(fontSize: 14),
+                  ),
+                  onPressed: () => _goToDonationHistory(context),
                 ),
               ],
             ),
@@ -168,4 +233,4 @@ class RecipientDashboard extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -14,12 +14,12 @@ import 'screens/ca_certificate_approval_screen.dart';
 import 'screens/shared_certificate_screen.dart';
 import 'screens/ca_create_certificate_screen.dart';
 import 'screens/recipient_certificate_upload_screen.dart';
+import 'screens/donation_screen.dart';
+import 'screens/donation_history_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -39,10 +39,15 @@ class MyApp extends StatelessWidget {
         '/ca_dashboard': (context) => const CaDashboard(),
         '/admin_dashboard': (context) => const AdminDashboard(),
         '/viewer_dashboard': (context) => const ViewerDashboard(),
-        '/recipient_certificates': (context) => const RecipientCertificatesScreen(),
+        '/recipient_certificates':
+            (context) => const RecipientCertificatesScreen(),
         '/ca_approvals': (context) => const CaCertificateApprovalScreen(),
-        '/ca_dashboard/create_certificate': (context) => const CaCreateCertificateScreen(),
-        '/recipient_upload': (context) => const RecipientCertificateUploadScreen(),
+        '/ca_dashboard/create_certificate':
+            (context) => const CaCreateCertificateScreen(),
+        '/recipient_upload':
+            (context) => const RecipientCertificateUploadScreen(),
+        '/donation': (context) => const DonationScreen(),
+        '/donation_history': (context) => const DonationHistoryScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name != null && settings.name!.startsWith('/shared/')) {
@@ -68,7 +73,8 @@ class AuthWrapper extends StatelessWidget {
       return const LoginScreen();
     } else {
       return FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
+        future:
+            FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
