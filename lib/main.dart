@@ -16,6 +16,7 @@ import 'screens/ca_create_certificate_screen.dart';
 import 'screens/recipient_certificate_upload_screen.dart';
 import 'screens/donation_screen.dart';
 import 'screens/donation_history_screen.dart';
+import 'screens/shared_certificate_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,12 +49,16 @@ class MyApp extends StatelessWidget {
             (context) => const RecipientCertificateUploadScreen(),
         '/donation': (context) => const DonationScreen(),
         '/donation_history': (context) => const DonationHistoryScreen(),
+        '/share_certificate': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return ShareCertificateScreen(certificateId: args['certificateId']);
+        },
       },
       onGenerateRoute: (settings) {
         if (settings.name != null && settings.name!.startsWith('/shared/')) {
           final token = settings.name!.substring('/shared/'.length);
           return MaterialPageRoute(
-            builder: (_) => SharedCertificateScreen(token: token),
+            builder: (_) => ShareCertificateScreen(certificateId: token),
           );
         }
         return null;
