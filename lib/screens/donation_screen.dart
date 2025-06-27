@@ -70,6 +70,15 @@ class _DonationScreenState extends State<DonationScreen> {
     });
 
     try {
+      // For demo purposes, simulate payment processing
+      await Future.delayed(Duration(seconds: 2)); // Simulate processing time
+
+      // Simulate successful payment (demo mode)
+      await _saveDonationRecord(amount);
+      _showSuccessDialog(amount);
+
+      // TODO: Uncomment below for real Stripe integration
+      /*
       // Create payment intent on your backend
       final paymentIntent = await _createPaymentIntent(amount);
 
@@ -91,6 +100,7 @@ class _DonationScreenState extends State<DonationScreen> {
       // Payment successful
       await _saveDonationRecord(amount);
       _showSuccessDialog(amount);
+      */
     } catch (e) {
       setState(() {
         _errorMessage = 'Payment failed: ${e.toString()}';
@@ -163,6 +173,30 @@ class _DonationScreenState extends State<DonationScreen> {
                 Text(
                   'Your donation of RM${amount.toStringAsFixed(2)} has been received successfully!',
                   style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 16),
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info, color: Colors.blue, size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'This is a demo payment. For real payments, configure Stripe integration.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(height: 16),
                 Text(
@@ -250,6 +284,22 @@ class _DonationScreenState extends State<DonationScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'DEMO MODE',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   SizedBox(height: 8),
                   Text(
