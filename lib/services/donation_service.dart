@@ -109,9 +109,28 @@ class DonationService {
           await _firestore
               .collection('donations')
               .where('uid', isEqualTo: user.uid)
-              .orderBy('timestamp', descending: true)
               .get();
-      return query.docs.map((doc) => doc.data()).toList();
+      final docs =
+          query.docs.map((doc) {
+            final data = doc.data();
+            // Ensure all required fields exist for old records
+            return {
+              'amount': data['amount'],
+              'currency': data['currency'] ?? 'myr',
+              'transactionId': data['transactionId'],
+              'status': data['status'] ?? 'completed',
+              'date': data['date'] ?? '',
+              'timestamp': data['timestamp'] ?? 0,
+            };
+          }).toList();
+      // Sort by timestamp if available, else by date string
+      docs.sort((a, b) {
+        final tA = a['timestamp'] ?? 0;
+        final tB = b['timestamp'] ?? 0;
+        if (tA != 0 && tB != 0) return tB.compareTo(tA);
+        return (b['date'] ?? '').compareTo(a['date'] ?? '');
+      });
+      return docs;
     } catch (e) {
       print('Failed to get donation history from Firestore: $e');
       // fallback to local
@@ -119,7 +138,15 @@ class DonationService {
         final prefs = await SharedPreferences.getInstance();
         final donations = prefs.getStringList('donations') ?? [];
         return donations.map((donation) {
-          return json.decode(donation) as Map<String, dynamic>;
+          final data = json.decode(donation) as Map<String, dynamic>;
+          return {
+            'amount': data['amount'],
+            'currency': data['currency'] ?? 'myr',
+            'transactionId': data['transactionId'],
+            'status': data['status'] ?? 'completed',
+            'date': data['date'] ?? '',
+            'timestamp': data['timestamp'] ?? 0,
+          };
         }).toList();
       } catch (e) {
         print('Failed to get donation history locally: $e');
