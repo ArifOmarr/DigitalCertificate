@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
 
@@ -220,58 +221,64 @@ class _UsersTab extends StatelessWidget {
                   roleColor = Colors.grey;
               }
               return Card(
-                elevation: 4,
+                elevation: 6,
                 margin: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 16,
+                  vertical: 12,
+                  horizontal: 20,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 18,
-                    horizontal: 20,
-                  ),
+                  padding: const EdgeInsets.all(20),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(Icons.email, color: Colors.teal[400]),
+                      Icon(Icons.email, color: Colors.teal, size: 28),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              data['email'] ?? 'No Email',
+                              data['email'] ?? '',
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 fontSize: 16,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.verified_user,
-                                  color: roleColor,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  currentRole[0].toUpperCase() +
-                                      currentRole.substring(1),
-                                  style: TextStyle(
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: roleColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.verified,
+                                    size: 16,
                                     color: roleColor,
-                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    currentRole[0].toUpperCase() +
+                                        currentRole.substring(1),
+                                    style: TextStyle(
+                                      color: roleColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
                       DropdownButton<String>(
                         value: currentRole,
                         items: const [
@@ -292,13 +299,11 @@ class _UsersTab extends StatelessWidget {
                         onChanged: (role) async {
                           await doc.reference.update({'role': role});
                         },
-                        dropdownColor: Colors.white,
+                        iconEnabledColor: Colors.teal,
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w500,
                           color: Colors.black,
                         ),
-                        iconEnabledColor: roleColor,
-                        borderRadius: BorderRadius.circular(12),
                       ),
                     ],
                   ),
@@ -479,11 +484,14 @@ class _ValidationRulesTabState extends State<ValidationRulesTab> {
                         (entry) => SwitchListTile(
                           title: Text(
                             entry.key.isNotEmpty
-                              ? entry.key[0].toUpperCase() + entry.key.substring(1)
-                              : '',
+                                ? entry.key[0].toUpperCase() +
+                                    entry.key.substring(1)
+                                : '',
                             style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
-                          subtitle: const Text('Certificate must have this field'),
+                          subtitle: const Text(
+                            'Certificate must have this field',
+                          ),
                           value: entry.value,
                           activeColor: Colors.teal,
                           onChanged: (value) {
@@ -532,14 +540,24 @@ class _ValidationRulesTabState extends State<ValidationRulesTab> {
                             ListTile(
                               title: Text(
                                 entry.key.isNotEmpty
-                                  ? entry.key[0].toUpperCase() + entry.key.substring(1)
-                                  : '',
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                    ? entry.key[0].toUpperCase() +
+                                        entry.key.substring(1)
+                                    : '',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               subtitle: Text(entry.value),
                               trailing: IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.teal),
-                                onPressed: () => _editValidationRule(entry.key, entry.value),
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.teal,
+                                ),
+                                onPressed:
+                                    () => _editValidationRule(
+                                      entry.key,
+                                      entry.value,
+                                    ),
                               ),
                             ),
                             const Divider(height: 1),
@@ -563,7 +581,10 @@ class _ValidationRulesTabState extends State<ValidationRulesTab> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                    textStyle: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
                     elevation: 4,
                   ),
                   label: const Text('Save Validation Rules'),
