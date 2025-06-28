@@ -66,6 +66,7 @@ class LoginScreen extends StatelessWidget {
       }
 
       // Navigate based on role
+      print('Role fetched: [$role]');
       if (role == 'ca') {
         Navigator.pushReplacementNamed(context, '/ca_dashboard');
       } else if (role == 'recipient') {
@@ -74,6 +75,8 @@ class LoginScreen extends StatelessWidget {
         Navigator.pushReplacementNamed(context, '/admin_dashboard');
       } else if (role == 'viewer') {
         Navigator.pushReplacementNamed(context, '/viewer_dashboard');
+      } else if (role == 'client') {
+        Navigator.pushReplacementNamed(context, '/client_dashboard');
       } else {
         ScaffoldMessenger.of(
           context,

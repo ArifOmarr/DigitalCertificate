@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
 
@@ -55,7 +54,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
+                          backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                         ),
                         onPressed: () {
@@ -73,7 +72,33 @@ class _AdminDashboardState extends State<AdminDashboard>
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Log out',
-            onPressed: () => _logout(context),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text('Logout'),
+                      content: const Text('Are you sure you want to logout?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Close dialog
+                            _logout(context); // Logout
+                          },
+                          child: const Text('Logout'),
+                        ),
+                      ],
+                    ),
+              );
+            },
           ),
         ],
         bottom: TabBar(

@@ -17,6 +17,7 @@ import 'screens/recipient_certificate_upload_screen.dart';
 import 'screens/donation_screen.dart';
 import 'screens/donation_history_screen.dart';
 import 'screens/shared_certificate_screen.dart';
+import 'screens/client_dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Digital Certificate App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
@@ -40,6 +42,7 @@ class MyApp extends StatelessWidget {
         '/ca_dashboard': (context) => const CaDashboard(),
         '/admin_dashboard': (context) => const AdminDashboard(),
         '/viewer_dashboard': (context) => const ViewerDashboard(),
+        '/client_dashboard': (context) => const ClientDashboard(),
         '/recipient_certificates':
             (context) => const RecipientCertificatesScreen(),
         '/ca_approvals': (context) => const CaCertificateApprovalScreen(),

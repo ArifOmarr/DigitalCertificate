@@ -38,62 +38,6 @@ class RecipientDashboard extends StatelessWidget {
     Navigator.pushNamed(context, '/donation_history');
   }
 
-  void _showRequestDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final _formKey = GlobalKey<FormState>();
-        String? _purpose;
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text('Request New Certificate'),
-          content: Form(
-            key: _formKey,
-            child: TextFormField(
-              decoration: const InputDecoration(labelText: 'Purpose/Reason'),
-              validator: (v) => v == null || v.isEmpty ? 'Enter purpose' : null,
-              onSaved: (v) => _purpose = v,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () async {
-                if (_formKey.currentState?.validate() ?? false) {
-                  _formKey.currentState?.save();
-                  final user = FirebaseAuth.instance.currentUser;
-                  await FirebaseFirestore.instance
-                      .collection('certificate_requests')
-                      .add({
-                        'requestedBy': user?.email,
-                        'purpose': _purpose,
-                        'requestedAt': FieldValue.serverTimestamp(),
-                      });
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Request submitted!')),
-                  );
-                }
-              },
-              child: const Text('Submit'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +93,33 @@ class RecipientDashboard extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Log out',
-            onPressed: () => _logout(context),
+            onPressed: () {
+            showDialog(
+              context: context,
+              builder:
+                  (context) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close dialog
+                          _logout(context); // Logout
+                        },
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  ),
+            );
+          },
           ),
         ],
       ),
@@ -242,16 +212,7 @@ class RecipientDashboard extends StatelessWidget {
                         onTap: () => _goToCertificates(context),
                       ),
                     ),
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _QuickActionCard(
-                        icon: Icons.request_page,
-                        label: 'Request Certificate',
-                        color: Colors.orange,
-                        onTap: () => _showRequestDialog(context),
-                      ),
-                    ),
+                    
                     const SizedBox(height: 14),
                     SizedBox(
                       width: double.infinity,
