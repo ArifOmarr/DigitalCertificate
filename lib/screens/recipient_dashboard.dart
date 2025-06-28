@@ -106,7 +106,44 @@ class RecipientDashboard extends StatelessWidget {
         backgroundColor: Colors.teal,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () async {
+            final shouldLogout = await showDialog<bool>(
+              context: context,
+              builder:
+                  (context) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text('Log Out?'),
+                    content: const Text(
+                      'Do you want to log out and exit the dashboard?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('No, Stay'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Yes, Log Out'),
+                      ),
+                    ],
+                  ),
+            );
+            if (shouldLogout == true) {
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/', (route) => false);
+            }
+          },
         ),
         actions: [
           IconButton(
@@ -139,13 +176,20 @@ class RecipientDashboard extends StatelessWidget {
                   color: Colors.teal[400],
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 28,
+                      horizontal: 24,
+                    ),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: 32,
                           backgroundColor: Colors.white,
-                          child: Icon(Icons.person, color: Colors.teal, size: 36),
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.teal,
+                            size: 36,
+                          ),
                         ),
                         const SizedBox(width: 20),
                         Expanded(
@@ -256,7 +300,10 @@ class RecipientDashboard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             'Manage your digital certificates easily and securely. For help, contact support.',
-                            style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey[800],
+                            ),
                           ),
                         ),
                       ],
@@ -297,9 +344,16 @@ class _QuickActionCardState extends State<_QuickActionCard> {
       decoration: BoxDecoration(
         color: widget.color,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: _pressed
-            ? [BoxShadow(color: widget.color.withOpacity(0.18), blurRadius: 16, offset: Offset(0, 6))]
-            : [],
+        boxShadow:
+            _pressed
+                ? [
+                  BoxShadow(
+                    color: widget.color.withOpacity(0.18),
+                    blurRadius: 16,
+                    offset: Offset(0, 6),
+                  ),
+                ]
+                : [],
       ),
       child: Material(
         color: Colors.transparent,
