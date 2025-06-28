@@ -3,6 +3,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/donation_service.dart';
 
 class DonationScreen extends StatefulWidget {
   const DonationScreen({super.key});
@@ -48,6 +49,16 @@ class _DonationScreenState extends State<DonationScreen> {
     }
   }
 
+  // This is a DEMO implementation of Stripe payment integration.
+  // For real payments, connect to your backend and use a real client secret.
+
+  // --- FAKE LOGGING FOR DEMO PURPOSES ---
+  void logDemoPayment(double amount) {
+    debugPrint(
+      '[DEMO] Payment of RM$amount processed (not real). Timestamp: \\${DateTime.now()}',
+    );
+  }
+
   Future<void> _processPayment() async {
     if (_selectedAmount == null && !_isCustomAmount) {
       setState(() {
@@ -70,46 +81,366 @@ class _DonationScreenState extends State<DonationScreen> {
     });
 
     try {
-      // For demo purposes, simulate payment processing
-      await Future.delayed(Duration(seconds: 2)); // Simulate processing time
-
-      // Simulate successful payment (demo mode)
-      await _saveDonationRecord(amount);
-      _showSuccessDialog(amount);
-
-      // TODO: Uncomment below for real Stripe integration
-      /*
-      // Create payment intent on your backend
-      final paymentIntent = await _createPaymentIntent(amount);
-
-      // Configure payment sheet
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: paymentIntent['client_secret'],
-          merchantDisplayName: 'Digital Certificate Repository',
-          style: ThemeMode.system,
-          appearance: PaymentSheetAppearance(
-            colors: PaymentSheetAppearanceColors(primary: Colors.teal),
-          ),
-        ),
+      // Show payment form directly (no processing dialog)
+      await _showFakePaymentSheet(amount);
+      logDemoPayment(amount);
+      await DonationService.saveDonationRecord(
+        amount: amount,
+        currency: 'myr',
+        status: 'completed',
       );
-
-      // Present payment sheet
-      await Stripe.instance.presentPaymentSheet();
-
-      // Payment successful
-      await _saveDonationRecord(amount);
-      _showSuccessDialog(amount);
-      */
     } catch (e) {
       setState(() {
-        _errorMessage = 'Payment failed: ${e.toString()}';
+        _errorMessage = 'Payment failed:  ${e.toString()}';
       });
     } finally {
       setState(() {
         _isProcessing = false;
       });
     }
+  }
+
+  Future<void> _showFakePaymentSheet(double amount) async {
+    String cardNumber = '';
+    String expiry = '';
+    String cvc = '';
+    String selectedMethod = 'Card';
+    bool isProcessing = false;
+    String? errorMessage;
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            bool validateCardFields() {
+              if (selectedMethod == 'Card') {
+                if (cardNumber.length != 16 ||
+                    int.tryParse(cardNumber) == null) {
+                  setModalState(
+                    () => errorMessage = 'Card number must be 16 digits.',
+                  );
+                  return false;
+                }
+                // Super simple MM/YY validation
+                if (expiry.length != 5 || expiry[2] != '/') {
+                  setModalState(() => errorMessage = 'Expiry must be MM/YY.');
+                  return false;
+                }
+                if (cvc.length < 3 ||
+                    cvc.length > 4 ||
+                    int.tryParse(cvc) == null) {
+                  setModalState(
+                    () => errorMessage = 'CVC must be 3 or 4 digits.',
+                  );
+                  return false;
+                }
+              }
+              setModalState(() => errorMessage = null);
+              return true;
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.credit_card, color: Colors.teal),
+                  SizedBox(width: 8),
+                  Text('Payment Details'),
+                ],
+              ),
+              content:
+                  isProcessing
+                      ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(height: 16),
+                          CircularProgressIndicator(color: Colors.teal),
+                          SizedBox(height: 16),
+                          Text(
+                            'Processing Payment...',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      )
+                      : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Radio<String>(
+                                      value: 'Card',
+                                      groupValue: selectedMethod,
+                                      onChanged: (value) {
+                                        setModalState(
+                                          () => selectedMethod = value!,
+                                        );
+                                      },
+                                    ),
+                                    Icon(Icons.credit_card, color: Colors.teal),
+                                    SizedBox(width: 8),
+                                    Text('Credit/Debit Card'),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Radio<String>(
+                                      value: 'Online Banking',
+                                      groupValue: selectedMethod,
+                                      onChanged: (value) {
+                                        setModalState(
+                                          () => selectedMethod = value!,
+                                        );
+                                      },
+                                    ),
+                                    Icon(
+                                      Icons.account_balance,
+                                      color: Colors.blue,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text('Online Banking'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          if (selectedMethod == 'Card') ...[
+                            TextField(
+                              decoration: InputDecoration(
+                                labelText: 'Card Number',
+                                prefixIcon: Icon(
+                                  Icons.credit_card,
+                                  color: Colors.grey,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: Colors.teal,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              keyboardType: TextInputType.number,
+                              maxLength: 16,
+                              onChanged: (v) => cardNumber = v,
+                            ),
+                            SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    decoration: InputDecoration(
+                                      labelText: 'Expiry (MM/YY)',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: Colors.teal,
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    keyboardType: TextInputType.datetime,
+                                    maxLength: 5,
+                                    onChanged: (v) => expiry = v,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: TextField(
+                                    decoration: InputDecoration(
+                                      labelText: 'CVC',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: Colors.teal,
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    maxLength: 4,
+                                    onChanged: (v) => cvc = v,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else ...[
+                            Container(
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[50],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.blue[200]!),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.info, color: Colors.blue),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'You will be redirected to your bank to complete the payment securely.',
+                                      style: TextStyle(color: Colors.blue[700]),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          if (errorMessage != null) ...[
+                            SizedBox(height: 12),
+                            Text(
+                              errorMessage!,
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                          SizedBox(height: 16),
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.teal[50],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Total Amount:',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  'RM${amount.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.teal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isProcessing
+                          ? null
+                          : () async {
+                            final shouldCancel = await showDialog<bool>(
+                              context: context,
+                              builder:
+                                  (context) => AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    title: Text('Cancel Donation?'),
+                                    content: Text(
+                                      'Are you sure you want to cancel your donation?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.of(
+                                              context,
+                                            ).pop(false),
+                                        child: Text('Back to Payment'),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                        ),
+                                        onPressed:
+                                            () =>
+                                                Navigator.of(context).pop(true),
+                                        child: Text('Yes, Cancel'),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                            if (shouldCancel == true) {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                  child: Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed:
+                      isProcessing
+                          ? null
+                          : () {
+                            if (!validateCardFields()) return;
+                            setModalState(() => isProcessing = true);
+                            Future.delayed(Duration(milliseconds: 900), () {
+                              Navigator.of(context).pop();
+                              // Show thank you dialog only after Pay
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                _showSuccessDialog(amount);
+                              });
+                            });
+                          },
+                  child:
+                      isProcessing
+                          ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text('Processing...'),
+                            ],
+                          )
+                          : Text('Pay RM${amount.toStringAsFixed(2)}'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<Map<String, dynamic>> _createPaymentIntent(double amount) async {
@@ -135,23 +466,7 @@ class _DonationScreenState extends State<DonationScreen> {
     }
   }
 
-  Future<void> _saveDonationRecord(double amount) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final donations = prefs.getStringList('donations') ?? [];
-      final donationRecord = {
-        'amount': amount,
-        'date': DateTime.now().toIso8601String(),
-        'status': 'completed',
-      };
-      donations.add(json.encode(donationRecord));
-      await prefs.setStringList('donations', donations);
-    } catch (e) {
-      print('Failed to save donation record: $e');
-    }
-  }
-
-  void _showSuccessDialog(double amount) {
+  void _showSuccessDialog(double amount, {bool isDemo = false}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -173,30 +488,6 @@ class _DonationScreenState extends State<DonationScreen> {
                 Text(
                   'Your donation of RM${amount.toStringAsFixed(2)} has been received successfully!',
                   style: TextStyle(fontSize: 16),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info, color: Colors.blue, size: 20),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'This is a demo payment. For real payments, configure Stripe integration.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue[700],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
                 SizedBox(height: 16),
                 Text(

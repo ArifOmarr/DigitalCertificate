@@ -1,6 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DonationService {
   // TODO: Replace with your actual backend URL
@@ -8,6 +10,9 @@ class DonationService {
 
   // TODO: Replace with your actual Stripe secret key (keep this secure on your backend)
   static const String _stripeSecretKey = 'sk_test_your_stripe_secret_key_here';
+
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Create a payment intent on the backend
   static Future<Map<String, dynamic>> createPaymentIntent({
@@ -52,7 +57,7 @@ class DonationService {
     }
   }
 
-  /// Save donation record locally
+  /// Save donation record to Firestore (and locally for fallback)
   static Future<void> saveDonationRecord({
     required double amount,
     required String currency,
@@ -60,9 +65,26 @@ class DonationService {
     String? status,
   }) async {
     try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('donations').add({
+          'uid': user.uid,
+          'email': user.email,
+          'amount': amount,
+          'currency': currency,
+          'transactionId': transactionId,
+          'status': status ?? 'completed',
+          'date': DateTime.now().toIso8601String(),
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      }
+    } catch (e) {
+      print('Failed to save donation to Firestore: $e');
+    }
+    // Also save locally for fallback
+    try {
       final prefs = await SharedPreferences.getInstance();
       final donations = prefs.getStringList('donations') ?? [];
-
       final donationRecord = {
         'amount': amount,
         'currency': currency,
@@ -71,47 +93,51 @@ class DonationService {
         'date': DateTime.now().toIso8601String(),
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       };
-
       donations.add(json.encode(donationRecord));
       await prefs.setStringList('donations', donations);
     } catch (e) {
-      print('Failed to save donation record: $e');
-      rethrow;
+      print('Failed to save donation record locally: $e');
     }
   }
 
-  /// Get all donation records
+  /// Get all donation records for the current user from Firestore
   static Future<List<Map<String, dynamic>>> getDonationHistory() async {
+    final user = _auth.currentUser;
+    if (user == null) return [];
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final donations = prefs.getStringList('donations') ?? [];
-
-      return donations.map((donation) {
-        return json.decode(donation) as Map<String, dynamic>;
-      }).toList();
+      final query =
+          await _firestore
+              .collection('donations')
+              .where('uid', isEqualTo: user.uid)
+              .orderBy('timestamp', descending: true)
+              .get();
+      return query.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      print('Failed to get donation history: $e');
-      return [];
+      print('Failed to get donation history from Firestore: $e');
+      // fallback to local
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final donations = prefs.getStringList('donations') ?? [];
+        return donations.map((donation) {
+          return json.decode(donation) as Map<String, dynamic>;
+        }).toList();
+      } catch (e) {
+        print('Failed to get donation history locally: $e');
+        return [];
+      }
     }
   }
 
-  /// Get total donation amount
+  /// Get total donation amount for the current user from Firestore
   static Future<double> getTotalDonations() async {
-    try {
-      final donations = await getDonationHistory();
-      double total = 0.0;
-
-      for (final donation in donations) {
-        if (donation['status'] == 'completed') {
-          total += (donation['amount'] as num).toDouble();
-        }
+    final donations = await getDonationHistory();
+    double total = 0.0;
+    for (final donation in donations) {
+      if (donation['status'] == 'completed') {
+        total += (donation['amount'] as num).toDouble();
       }
-
-      return total;
-    } catch (e) {
-      print('Failed to calculate total donations: $e');
-      return 0.0;
     }
+    return total;
   }
 
   /// Validate donation amount
@@ -155,43 +181,12 @@ class DonationService {
     }
   }
 
-  /// Get donation statistics
+  /// Get donation statistics for the current user from Firestore
   static Future<Map<String, dynamic>> getDonationStats() async {
-    try {
-      final donations = await getDonationHistory();
-      final completedDonations =
-          donations.where((d) => d['status'] == 'completed').toList();
-
-      if (completedDonations.isEmpty) {
-        return {
-          'totalAmount': 0.0,
-          'totalDonations': 0,
-          'averageAmount': 0.0,
-          'lastDonation': null,
-        };
-      }
-
-      final totalAmount = completedDonations.fold<double>(
-        0.0,
-        (sum, donation) => sum + (donation['amount'] as num).toDouble(),
-      );
-
-      final averageAmount = totalAmount / completedDonations.length;
-
-      // Sort by timestamp to get the latest donation
-      completedDonations.sort(
-        (a, b) => (b['timestamp'] as int).compareTo(a['timestamp'] as int),
-      );
-      final lastDonation = completedDonations.first;
-
-      return {
-        'totalAmount': totalAmount,
-        'totalDonations': completedDonations.length,
-        'averageAmount': averageAmount,
-        'lastDonation': lastDonation,
-      };
-    } catch (e) {
-      print('Failed to get donation stats: $e');
+    final donations = await getDonationHistory();
+    final completedDonations =
+        donations.where((d) => d['status'] == 'completed').toList();
+    if (completedDonations.isEmpty) {
       return {
         'totalAmount': 0.0,
         'totalDonations': 0,
@@ -199,5 +194,20 @@ class DonationService {
         'lastDonation': null,
       };
     }
+    final totalAmount = completedDonations.fold<double>(
+      0.0,
+      (sum, donation) => sum + (donation['amount'] as num).toDouble(),
+    );
+    final averageAmount = totalAmount / completedDonations.length;
+    completedDonations.sort(
+      (a, b) => (b['timestamp'] ?? 0).compareTo(a['timestamp'] ?? 0),
+    );
+    final lastDonation = completedDonations.first;
+    return {
+      'totalAmount': totalAmount,
+      'totalDonations': completedDonations.length,
+      'averageAmount': averageAmount,
+      'lastDonation': lastDonation,
+    };
   }
 }
