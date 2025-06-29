@@ -62,16 +62,97 @@ class ClientDashboard extends StatelessWidget {
     );
   }
 
-  void _reviewCertificates(BuildContext context) {
-    Navigator.pushNamed(context, '/review_certificates');
+  void _showCertificateRequests(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          builder: (context, scrollController) {
+            return StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance
+                      .collection('certificate_requests')
+                      .orderBy('requestedAt', descending: true)
+                      .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final docs = snapshot.data!.docs;
+                if (docs.isEmpty) {
+                  return const Center(child: Text('No certificate requests.'));
+                }
+                return ListView.builder(
+                  controller: scrollController,
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final doc = docs[index];
+                    final data = doc.data() as Map<String, dynamic>;
+                    final status = data['status'] ?? 'Pending';
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          'Requested by: ${data['requestedBy'] ?? ''}',
+                        ),
+                        subtitle: Text(
+                          'Purpose: ${data['purpose'] ?? ''}\nRequested at: ${data['requestedAt'] != null ? data['requestedAt'].toDate().toString().split(' ')[0] : ''}\nStatus: $status',
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (status != 'Complete')
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.teal,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  await doc.reference.update({
+                                    'status': 'Complete',
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Marked as complete.'),
+                                    ),
+                                  );
+                                },
+                                child: const Text('Mark Complete'),
+                              ),
+                            if (status == 'Complete')
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   void _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -213,29 +294,41 @@ class ClientDashboard extends StatelessWidget {
             const SizedBox(height: 32),
 
             // Action Buttons
-            Wrap(
-              spacing: 20,
-              runSpacing: 20,
-              children: [
-                _ActionCard(
-                  icon: Icons.add_circle_outline,
-                  label: 'Request Certificate',
-                  color: Colors.teal,
-                  onTap: () => _showRequestDialog(context),
+            Text(
+                  'Quick Actions',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal[800],
+                  ),
                 ),
-                _ActionCard(
-                  icon: Icons.check_circle_outline,
-                  label: 'Review Requests',
-                  color: Colors.orange,
-                  onTap: () => _reviewCertificates(context),
+                const SizedBox(height: 16),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: _ActionCard(
+                        icon: Icons.folder,
+                        label: 'Request Certificate Issuance',
+                        color: Colors.teal,
+                        onTap: () => _showRequestDialog(context),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _ActionCard(
+                        icon: Icons.upload_file,
+                        label: 'View Certificate Requests',
+                        color: Colors.blue,
+                        onTap: () => _showCertificateRequests(context),
+                      ),
+                    ),
+                    
+                  ],
                 ),
-              ],
-            ),
-
-            
-
-            
-            
+                const SizedBox(height: 32),
           ],
         ),
       ),

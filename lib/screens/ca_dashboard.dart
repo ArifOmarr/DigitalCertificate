@@ -550,12 +550,7 @@ class CaDashboard extends StatelessWidget {
                       color: Colors.orange,
                       onTap: () => _goToCertifyTrueCopies(context),
                     ),
-                    _ModernActionCard(
-                      icon: Icons.list_alt,
-                      label: 'View Certificate Requests',
-                      color: Colors.blue,
-                      onTap: () => _showCertificateRequests(context),
-                    ),
+                    
                     _ModernActionCard(
                       icon: Icons.business,
                       label: 'Manage Client Profiles',
