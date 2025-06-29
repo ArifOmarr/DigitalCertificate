@@ -389,6 +389,14 @@ class CaDashboard extends StatelessWidget {
     );
   }
 
+  void _goToDonation(BuildContext context) {
+    Navigator.pushNamed(context, '/donation');
+  }
+
+  void _goToDonationHistory(BuildContext context) {
+    Navigator.pushNamed(context, '/donation_history');
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -556,6 +564,20 @@ class CaDashboard extends StatelessWidget {
                       label: 'Manage Client Profiles',
                       color: Colors.deepPurple,
                       onTap: () => _showClientProfiles(context),
+                    ),
+
+                    _ModernActionCard(
+                      icon: Icons.history,
+                      label: 'Donation History',
+                      color: const Color.fromARGB(255, 5, 5, 141),
+                      onTap: () => _goToDonationHistory(context),
+                    ),
+
+                    _ModernActionCard(
+                      icon: Icons.favorite,
+                      label: 'Donate',
+                      color: Colors.pink,
+                      onTap: () => _goToDonation(context),
                     ),
                   ],
                 ),

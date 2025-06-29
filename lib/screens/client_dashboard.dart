@@ -149,6 +149,14 @@ class ClientDashboard extends StatelessWidget {
     );
   }
 
+  void _goToDonation(BuildContext context) {
+    Navigator.pushNamed(context, '/donation');
+  }
+
+  void _goToDonationHistory(BuildContext context) {
+    Navigator.pushNamed(context, '/donation_history');
+  }
+
   void _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
@@ -328,7 +336,26 @@ class ClientDashboard extends StatelessWidget {
                     
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 14),
+                SizedBox(
+                      width: double.infinity,
+                      child: _ActionCard(
+                        icon: Icons.history,
+                        label: 'Donation History',
+                        color: Colors.deepPurple,
+                        onTap: () => _goToDonationHistory(context),
+                      ),
+                    ),
+                const SizedBox(height: 14),
+                SizedBox(
+                      width: double.infinity,
+                      child: _ActionCard(
+                        icon: Icons.favorite,
+                        label: 'Donate',
+                        color: Colors.pink,
+                        onTap: () => _goToDonation(context),
+                      ),
+                    ),
           ],
         ),
       ),
