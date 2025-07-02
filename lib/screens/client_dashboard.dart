@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'client_review_certificates_screen.dart';
 
 class ClientDashboard extends StatelessWidget {
   const ClientDashboard({super.key});
@@ -328,9 +329,14 @@ class ClientDashboard extends StatelessWidget {
                       width: double.infinity,
                       child: _ActionCard(
                         icon: Icons.upload_file,
-                        label: 'View Certificate Requests',
+                        label: 'Review Certificates',
                         color: Colors.blue,
-                        onTap: () => _showCertificateRequests(context),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ClientReviewCertificatesScreen(),
+                          ),
+                        ),
                       ),
                     ),
                     
