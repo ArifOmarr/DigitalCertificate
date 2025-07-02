@@ -252,6 +252,49 @@ class ClientDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Hero Banner
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.teal[300]!, Colors.teal[100]!],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              child: Row(
+                children: [
+                  Icon(Icons.business_center, size: 48, color: Colors.white),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Client Portal',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'Request, review, and manage your certificates easily.',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
             // Greeting Card
             Card(
               elevation: 4,
@@ -301,67 +344,86 @@ class ClientDashboard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-
-            // Action Buttons
+            // Quick Actions Grid
             Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.teal[800],
+              'Quick Actions',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal[800],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 24,
+              runSpacing: 24,
+              children: [
+                _ActionCard(
+                  icon: Icons.folder,
+                  label: 'Request Certificate Issuance',
+                  color: Colors.teal,
+                  onTap: () => _showRequestDialog(context),
+                ),
+                _ActionCard(
+                  icon: Icons.upload_file,
+                  label: 'Review Certificates',
+                  color: Colors.blue,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ClientReviewCertificatesScreen(),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: _ActionCard(
-                        icon: Icons.folder,
-                        label: 'Request Certificate Issuance',
-                        color: Colors.teal,
-                        onTap: () => _showRequestDialog(context),
+                _ActionCard(
+                  icon: Icons.history,
+                  label: 'Donation History',
+                  color: Colors.deepPurple,
+                  onTap: () => _goToDonationHistory(context),
+                ),
+                _ActionCard(
+                  icon: Icons.favorite,
+                  label: 'Donate',
+                  color: Colors.pink,
+                  onTap: () => _goToDonation(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            // Recent Activities Section
+            
+            const SizedBox(height: 32),
+            // Tips/Info Section
+            Card(
+              elevation: 1,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              color: Colors.teal[100],
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: const [
+                    Icon(Icons.lightbulb_outline, color: Colors.teal, size: 24),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Tip: You can request new certificates and track their status here.',
+                        style: TextStyle(fontSize: 15, color: Colors.teal),
                       ),
                     ),
-                    
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _ActionCard(
-                        icon: Icons.upload_file,
-                        label: 'Review Certificates',
-                        color: Colors.blue,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ClientReviewCertificatesScreen(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    
                   ],
                 ),
-                const SizedBox(height: 14),
-                SizedBox(
-                      width: double.infinity,
-                      child: _ActionCard(
-                        icon: Icons.history,
-                        label: 'Donation History',
-                        color: Colors.deepPurple,
-                        onTap: () => _goToDonationHistory(context),
-                      ),
-                    ),
-                const SizedBox(height: 14),
-                SizedBox(
-                      width: double.infinity,
-                      child: _ActionCard(
-                        icon: Icons.favorite,
-                        label: 'Donate',
-                        color: Colors.pink,
-                        onTap: () => _goToDonation(context),
-                      ),
-                    ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Footer
+            Center(
+              child: Text(
+                'Digital Certificate App v1.0.0\n© 2024 TrueCopy',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.teal[300], fontSize: 13),
+              ),
+            ),
           ],
         ),
       ),
@@ -390,7 +452,7 @@ class _ActionCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: Container(
         width: 180,
-        height: 140,
+        height: 150,
         decoration: BoxDecoration(
           color: color.withOpacity(0.12),
           borderRadius: BorderRadius.circular(20),

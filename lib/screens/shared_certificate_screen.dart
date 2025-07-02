@@ -128,8 +128,10 @@ class _ShareCertificateScreenState extends State<ShareCertificateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(title: const Text('Share Certificate'), backgroundColor: Colors.teal),
+      appBar: AppBar(
+        title: const Text('Share Certificate'),
+        backgroundColor: Colors.teal,
+      ),
       body: _isRevoked == null
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -138,130 +140,236 @@ class _ShareCertificateScreenState extends State<ShareCertificateScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Set sharing preferences:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Expiry Date Picker
-                    Row(
-                      children: [
-                        const Text('Expires at:'),
-                        const SizedBox(width: 16),
-                        ElevatedButton(
-                          onPressed: () async {
-                            final now = DateTime.now();
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: now,
-                              firstDate: now,
-                              lastDate: now.add(const Duration(days: 365)),
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                _expiresAt = picked;
-                              });
-                            }
-                          },
-                          child: Text(_expiresAt == null
-                              ? 'Select Date'
-                              : _expiresAt!.toString().split(' ')[0]),
+                    // Hero Banner
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.teal[300]!, Colors.teal[100]!],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // OTP Input
-                    TextField(
-                      controller: _otpController,
-                      decoration: const InputDecoration(
-                        labelText: 'Optional OTP',
-                        hintText: 'Leave blank if not needed',
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // One-Time Toggle
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('One-time access?'),
-                        Switch(
-                          value: _oneTime,
-                          onChanged: (val) =>
-                              setState(() => _oneTime = val),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Generate Button
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.link),
-                      label: const Text('Generate Share Link'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                      child: Row(
+                        children: [
+                          Icon(Icons.link, size: 48, color: Colors.white),
+                          const SizedBox(width: 18),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Share Certificate',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 6),
+                                Text(
+                                  'Generate secure, time-limited links for certificate sharing.',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      onPressed:
-                          (_loading || _isRevoked == true) ? null : _generateLink,
                     ),
                     const SizedBox(height: 24),
 
+                    // Sharing Preferences Card
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Set sharing preferences:',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
+                            ),
+                            const SizedBox(height: 16),
+                            // Expiry Date Picker
+                            Row(
+                              children: [
+                                const Text('Expires at:'),
+                                const SizedBox(width: 16),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final now = DateTime.now();
+                                    final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: now,
+                                      firstDate: now,
+                                      lastDate: now.add(const Duration(days: 365)),
+                                    );
+                                    if (picked != null) {
+                                      setState(() {
+                                        _expiresAt = picked;
+                                      });
+                                    }
+                                  },
+                                  child: Text(_expiresAt == null
+                                      ? 'Select Date'
+                                      : _expiresAt!.toString().split(' ')[0]),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            // OTP Input
+                            TextField(
+                              controller: _otpController,
+                              decoration: const InputDecoration(
+                                labelText: 'Optional OTP',
+                                hintText: 'Leave blank if not needed',
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            // One-Time Toggle
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('One-time access?'),
+                                Switch(
+                                  value: _oneTime,
+                                  onChanged: (val) => setState(() => _oneTime = val),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            // Generate Button
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.link),
+                              label: const Text('Generate Share Link'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              ),
+                              onPressed: (_loading || _isRevoked == true) ? null : _generateLink,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Generated Link Card
                     if (_generatedLink != null) ...[
-                      const Text('Shareable Link:',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      SelectableText(
-                        _generatedLink!,
-                        style: const TextStyle(color: Colors.blueAccent),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.copy),
-                        label: const Text('Copy Link'),
-                        onPressed: () {
-                          Clipboard.setData(
-                              ClipboardData(text: _generatedLink!));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Link copied to clipboard')),
-                          );
-                        },
-                      ),
-                    ],
-
-                    const SizedBox(height: 32),
-                    const Divider(height: 32),
-
-                    if (_userRole == 'admin' || _userRole == 'ca') ...[
-                      const Text('Certificate Actions:',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.block),
-                        label: const Text('Revoke Certificate'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        color: Colors.teal[50],
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Shareable Link:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal)),
+                              const SizedBox(height: 8),
+                              SelectableText(
+                                _generatedLink!,
+                                style: const TextStyle(color: Colors.blueAccent),
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.copy),
+                                label: const Text('Copy Link'),
+                                onPressed: () {
+                                  Clipboard.setData(ClipboardData(text: _generatedLink!));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Link copied to clipboard')),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                        onPressed: _confirmAndRevokeCertificate,
                       ),
+                      const SizedBox(height: 24),
                     ],
-                    if (_isRevoked == true) ...[
+
+                    // Certificate Actions Card (if admin/ca)
+                    if (_userRole == 'admin' || _userRole == 'ca') ...[
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        color: Colors.red[50],
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Certificate Actions:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.block),
+                                label: const Text('Revoke Certificate'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                ),
+                                onPressed: _confirmAndRevokeCertificate,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 16),
+                    ],
+
+                    if (_isRevoked == true) ...[
                       const Text(
                         '⚠️ This certificate has already been revoked.',
                         style: TextStyle(color: Colors.red),
                       ),
+                      const SizedBox(height: 16),
                     ],
+
+                    // Tips/Info Section
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      color: Colors.teal[100],
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.lightbulb_outline, color: Colors.teal, size: 24),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Tip: Share links with an expiry date and OTP for maximum security.',
+                                style: TextStyle(fontSize: 15, color: Colors.teal),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Footer
+                    Center(
+                      child: Text(
+                        'Digital Certificate App v1.0.0\n© 2024 TrueCopy',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.teal[300], fontSize: 13),
+                      ),
+                    ),
                   ],
                 ),
               ),

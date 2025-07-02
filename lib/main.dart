@@ -99,6 +99,8 @@ class AuthWrapper extends StatelessWidget {
               return const AdminDashboard();
             } else if (role == 'viewer') {
               return const ViewerDashboard();
+            } else if (role == 'client') {
+              return const ClientDashboard();
             } else {
               return const Scaffold(body: Center(child: Text('Unknown role')));
             }

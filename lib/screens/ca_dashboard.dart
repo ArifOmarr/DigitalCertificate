@@ -488,6 +488,49 @@ class CaDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Hero Banner
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.teal[300]!, Colors.teal[100]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                  child: Row(
+                    children: [
+                      Icon(Icons.verified, size: 48, color: Colors.white),
+                      const SizedBox(width: 18),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Certificate Authority Portal',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Manage, issue, and certify digital certificates with ease.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
                 // Greeting Card
                 Card(
                   elevation: 4,
@@ -535,7 +578,7 @@ class CaDashboard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                // Modern Action Cards Grid
+                // Action Cards Grid
                 Text(
                   'Actions',
                   style: sectionHeaderStyle,
@@ -558,21 +601,18 @@ class CaDashboard extends StatelessWidget {
                       color: Colors.orange,
                       onTap: () => _goToCertifyTrueCopies(context),
                     ),
-                    
                     _ModernActionCard(
                       icon: Icons.business,
                       label: 'Manage Client Profiles',
                       color: Colors.deepPurple,
                       onTap: () => _showClientProfiles(context),
                     ),
-
                     _ModernActionCard(
                       icon: Icons.history,
                       label: 'Donation History',
                       color: const Color.fromARGB(255, 5, 5, 141),
                       onTap: () => _goToDonationHistory(context),
                     ),
-
                     _ModernActionCard(
                       icon: Icons.favorite,
                       label: 'Donate',
@@ -676,6 +716,36 @@ class CaDashboard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
+                // Tips/Info Section
+                Card(
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  color: Colors.teal[100],
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.lightbulb_outline, color: Colors.teal, size: 24),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Tip: Always verify recipient details before issuing a certificate.',
+                            style: TextStyle(fontSize: 15, color: Colors.teal),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Footer
+                Center(
+                  child: Text(
+                    'Digital Certificate App v1.0.0\n© 2024 TrueCopy',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.teal[300], fontSize: 13),
+                  ),
+                ),
               ],
             ),
           );
