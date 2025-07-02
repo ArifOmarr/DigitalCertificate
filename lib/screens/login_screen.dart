@@ -225,6 +225,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       Navigator.pushReplacementNamed(context, '/admin_dashboard');
     } else if (_selectedRole == 'viewer') {
       Navigator.pushReplacementNamed(context, '/viewer_dashboard');
+    } else if (_selectedRole == 'client') {
+      Navigator.pushReplacementNamed(context, '/client_dashboard');
     }
   }
 
@@ -278,6 +280,12 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                   onChanged:
                       _saving ? null : (v) => setState(() => _selectedRole = v),
                   title: const Text('Viewer'),
+                ),
+                RadioListTile<String>(
+                  value: 'client',
+                  groupValue: _selectedRole,
+                  onChanged: _saving ? null : (v) => setState(() => _selectedRole = v),
+                  title: const Text('Client'),
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
