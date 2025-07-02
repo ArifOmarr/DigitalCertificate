@@ -102,12 +102,6 @@ class ViewerDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    // Mock recent activities
-    final List<Map<String, String>> recentActivities = [
-      {'type': 'Verified', 'detail': 'Certificate #12345', 'time': '2 min ago'},
-      {'type': 'Accessed', 'detail': 'Shared Link #A1B2', 'time': '10 min ago'},
-      {'type': 'Verified', 'detail': 'Certificate #67890', 'time': '1 day ago'},
-    ];
     return Scaffold(
       backgroundColor: Colors.teal[50],
       appBar: AppBar(
@@ -320,54 +314,6 @@ class ViewerDashboard extends StatelessWidget {
                   },
                 ),
               ],
-            ),
-            const SizedBox(height: 32),
-
-            // Recent Activities Section
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Recent Activities',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ...recentActivities.map((activity) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6.0),
-                          child: Row(
-                            children: [
-                              Icon(
-                                activity['type'] == 'Verified' ? Icons.verified : Icons.link,
-                                color: activity['type'] == 'Verified' ? Colors.green : Colors.blue,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  '${activity['type']} - ${activity['detail']}',
-                                  style: const TextStyle(fontSize: 15),
-                                ),
-                              ),
-                              Text(
-                                activity['time']!,
-                                style: const TextStyle(fontSize: 13, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        )),
-                  ],
-                ),
-              ),
             ),
             const SizedBox(height: 32),
 
