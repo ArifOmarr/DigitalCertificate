@@ -29,16 +29,16 @@ class RecipientDashboard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) {
-        final _formKey = GlobalKey<FormState>();
-        String? _purpose;
+        final formKey = GlobalKey<FormState>();
+        String? purpose;
         return AlertDialog(
           title: const Text('Request New Certificate'),
           content: Form(
-            key: _formKey,
+            key: formKey,
             child: TextFormField(
               decoration: const InputDecoration(labelText: 'Purpose/Reason'),
               validator: (v) => v == null || v.isEmpty ? 'Enter purpose' : null,
-              onSaved: (v) => _purpose = v,
+              onSaved: (v) => purpose = v,
             ),
           ),
           actions: [
@@ -48,12 +48,12 @@ class RecipientDashboard extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (_formKey.currentState?.validate() ?? false) {
-                  _formKey.currentState?.save();
+                if (formKey.currentState?.validate() ?? false) {
+                  formKey.currentState?.save();
                   final user = FirebaseAuth.instance.currentUser;
                   await FirebaseFirestore.instance.collection('certificate_requests').add({
                     'requestedBy': user?.email,
-                    'purpose': _purpose,
+                    'purpose': purpose,
                     'requestedAt': FieldValue.serverTimestamp(),
                   });
                   Navigator.pop(context);
@@ -121,4 +121,4 @@ class RecipientDashboard extends StatelessWidget {
       ),
     );
   }
-} 
+}

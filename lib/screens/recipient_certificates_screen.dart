@@ -17,9 +17,7 @@ class RecipientCertificatesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('Not logged in.')),
-      );
+      return const Scaffold(body: Center(child: Text('Not logged in.')));
     }
 
     return Scaffold(
@@ -30,10 +28,11 @@ class RecipientCertificatesScreen extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('certificates')
-            .where('recipientEmail', isEqualTo: user.email)
-            .snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('certificates')
+                .where('recipientEmail', isEqualTo: user.email)
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -45,7 +44,10 @@ class RecipientCertificatesScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.school, size: 64, color: Colors.teal[200]),
                   const SizedBox(height: 16),
-                  const Text('No certificates found.', style: TextStyle(fontSize: 18)),
+                  const Text(
+                    'No certificates found.',
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ],
               ),
             );
@@ -64,10 +66,15 @@ class RecipientCertificatesScreen extends StatelessWidget {
               if (status == 'Expired') statusColor = Colors.red;
               return Card(
                 elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 margin: const EdgeInsets.only(bottom: 20),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 20,
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -77,19 +84,33 @@ class RecipientCertificatesScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(cert['title'] ?? 'No Title', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text(
+                              cert['title'] ?? 'No Title',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               'Issued: ${issueDate != null ? issueDate.toString().split(' ')[0] : 'Unknown'}',
-                              style: const TextStyle(fontSize: 14, color: Colors.black54),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Row(
                               children: [
                                 Chip(
                                   label: Text(status),
-                                  backgroundColor: statusColor.withOpacity(0.15),
-                                  labelStyle: TextStyle(color: statusColor, fontWeight: FontWeight.bold),
+                                  backgroundColor: statusColor.withOpacity(
+                                    0.15,
+                                  ),
+                                  labelStyle: TextStyle(
+                                    color: statusColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -103,64 +124,130 @@ class RecipientCertificatesScreen extends StatelessWidget {
                             icon: const Icon(Icons.share, color: Colors.teal),
                             tooltip: 'Share Certificate',
                             onPressed: () async {
-                              final token = await CertificateShareService().createShareableLink(
-                                doc.id,
-                                expireDays: 3, // You can make this configurable
-                                oneTime: false, // Or true for one-time use
-                              );
-                              // Development/Production switch for share link
-                              const bool isProduction = false; // Set to true when deploying!
-                              const localDomain = 'http://10.113.19.22:3000'; // Your local IP and port
-                              const productionDomain = 'https://mycertificates.upm.edu.my'; // Real domain
-                              final link = '${isProduction ? productionDomain : localDomain}/#/shared/$token';
-                              await Clipboard.setData(ClipboardData(text: link));
+                              String? token;
+                              String? link;
+                              String? error;
+                              try {
+                                token = await CertificateShareService()
+                                    .createShareableLink(
+                                      doc.id,
+                                      expireDays:
+                                          3, // You can make this configurable
+                                      oneTime:
+                                          false, // Or true for one-time use
+                                    );
+                                // Development/Production switch for share link
+                                const bool isProduction =
+                                    false; // Set to true when deploying!
+                                const localDomain =
+                                    'http://10.113.19.22:3000'; // Your local IP and port
+                                const productionDomain =
+                                    'https://mycertificates.upm.edu.my'; // Real domain
+                                link =
+                                    '${isProduction ? productionDomain : localDomain}/#/shared/$token';
+                                await Clipboard.setData(
+                                  ClipboardData(text: link),
+                                );
+                              } catch (e) {
+                                error = 'Failed to generate share link: $e';
+                              }
                               showDialog(
                                 context: context,
-                                builder: (context) => AlertDialog(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                  title: const Text('Shareable Link'),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text('Link copied to clipboard!'),
-                                      const SizedBox(height: 8),
-                                      SelectableText(link),
-                                      const SizedBox(height: 16),
-                                      const Text('This link will expire in 3 days.'),
-                                    ],
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Close'),
-                                    ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.teal,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                builder:
+                                    (context) => AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
-                                      onPressed: () async {
-                                        Navigator.pop(context);
-                                        final uri = Uri.parse(link);
-                                        if (await canLaunchUrl(uri)) {
-                                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Could not open link in browser')),
-                                          );
-                                        }
-                                      },
-                                      child: const Text('Open Link'),
+                                      title: const Text('Shareable Link'),
+                                      content:
+                                          error != null
+                                              ? Text(
+                                                error!,
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                ),
+                                              )
+                                              : Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    'Link copied to clipboard!',
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  SelectableText(
+                                                    link ?? 'No link generated',
+                                                    style: TextStyle(
+                                                      color: Colors.blueAccent,
+                                                    ),
+                                                  ),
+                                                  if (token != null) ...[
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      'Token: $token',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.grey,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  const SizedBox(height: 16),
+                                                  const Text(
+                                                    'This link will expire in 3 days.',
+                                                  ),
+                                                ],
+                                              ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: const Text('Close'),
+                                        ),
+                                        if (link != null)
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.teal,
+                                              foregroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              Navigator.pop(context);
+                                              final uri = Uri.parse(link!);
+                                              if (await canLaunchUrl(uri)) {
+                                                await launchUrl(
+                                                  uri,
+                                                  mode:
+                                                      LaunchMode
+                                                          .externalApplication,
+                                                );
+                                              } else {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Could not open link in browser',
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: const Text('Open Link'),
+                                          ),
+                                      ],
                                     ),
-                                  ],
-                                ),
                               );
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.visibility, color: Colors.blue),
+                            icon: const Icon(
+                              Icons.visibility,
+                              color: Colors.blue,
+                            ),
                             tooltip: 'View Certificate',
                             onPressed: () async {
                               final url = cert['pdfUrl'];
@@ -168,13 +255,20 @@ class RecipientCertificatesScreen extends StatelessWidget {
                                 await openPdfFromUrl(url, context);
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('No PDF URL available for this certificate.')),
+                                  const SnackBar(
+                                    content: Text(
+                                      'No PDF URL available for this certificate.',
+                                    ),
+                                  ),
                                 );
                               }
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.download, color: Colors.green),
+                            icon: const Icon(
+                              Icons.download,
+                              color: Colors.green,
+                            ),
                             tooltip: 'Download Certificate',
                             onPressed: () async {
                               final url = cert['pdfUrl'];
@@ -182,7 +276,11 @@ class RecipientCertificatesScreen extends StatelessWidget {
                                 await openPdfFromUrl(url, context);
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('No PDF URL available for this certificate.')),
+                                  const SnackBar(
+                                    content: Text(
+                                      'No PDF URL available for this certificate.',
+                                    ),
+                                  ),
                                 );
                               }
                             },
@@ -228,9 +326,9 @@ class RecipientCertificatesScreen extends StatelessWidget {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error opening PDF: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error opening PDF: $e')));
     }
   }
-} 
+}

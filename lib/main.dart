@@ -14,12 +14,14 @@ import 'screens/ca_certificate_approval_screen.dart';
 import 'screens/shared_certificate_screen.dart';
 import 'screens/ca_create_certificate_screen.dart';
 import 'screens/recipient_certificate_upload_screen.dart';
+import 'screens/donation_screen.dart';
+import 'screens/donation_history_screen.dart';
+import 'screens/shared_certificate_screen.dart';
+import 'screens/client_dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -29,6 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Digital Certificate App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -40,16 +43,26 @@ class MyApp extends StatelessWidget {
         '/ca_dashboard': (context) => const CaDashboard(),
         '/admin_dashboard': (context) => const AdminDashboard(),
         '/viewer_dashboard': (context) => const ViewerDashboard(),
-        '/recipient_certificates': (context) => const RecipientCertificatesScreen(),
+        '/client_dashboard': (context) => const ClientDashboard(),
+        '/recipient_certificates':
+            (context) => const RecipientCertificatesScreen(),
         '/ca_approvals': (context) => const CaCertificateApprovalScreen(),
-        '/ca_dashboard/create_certificate': (context) => const CaCreateCertificateScreen(),
-        '/recipient_upload': (context) => const RecipientCertificateUploadScreen(),
+        '/ca_dashboard/create_certificate':
+            (context) => const CaCreateCertificateScreen(),
+        '/recipient_upload':
+            (context) => const RecipientCertificateUploadScreen(),
+        '/donation': (context) => const DonationScreen(),
+        '/donation_history': (context) => const DonationHistoryScreen(),
+        '/share_certificate': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return ShareCertificateScreen(certificateId: args['certificateId']);
+        },
       },
       onGenerateRoute: (settings) {
         if (settings.name != null && settings.name!.startsWith('/shared/')) {
           final token = settings.name!.substring('/shared/'.length);
           return MaterialPageRoute(
-            builder: (_) => SharedCertificateScreen(token: token),
+            builder: (_) => ShareCertificateScreen(certificateId: token),
           );
         }
         return null;
@@ -69,7 +82,8 @@ class AuthWrapper extends StatelessWidget {
       return const LoginScreen();
     } else {
       return FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
+        future:
+            FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
@@ -86,6 +100,8 @@ class AuthWrapper extends StatelessWidget {
               return const AdminDashboard();
             } else if (role == 'viewer') {
               return const ViewerDashboard();
+            } else if (role == 'client') {
+              return const ClientDashboard();
             } else {
               return const Scaffold(body: Center(child: Text('Unknown role')));
             }

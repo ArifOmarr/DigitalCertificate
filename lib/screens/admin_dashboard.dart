@@ -10,7 +10,8 @@ class AdminDashboard extends StatefulWidget {
   State<AdminDashboard> createState() => _AdminDashboardState();
 }
 
-class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProviderStateMixin {
+class _AdminDashboardState extends State<AdminDashboard>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -37,11 +38,67 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
         backgroundColor: Colors.teal,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder:
+                  (context) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close dialog
+                          _logout(context); // Logout
+                        },
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  ),
+            );
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Log out',
-            onPressed: () => _logout(context),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text('Logout'),
+                      content: const Text('Are you sure you want to logout?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Close dialog
+                            _logout(context); // Logout
+                          },
+                          child: const Text('Logout'),
+                        ),
+                      ],
+                    ),
+              );
+            },
           ),
         ],
         bottom: TabBar(
@@ -81,7 +138,8 @@ class _UsersTab extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('users').snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData)
+          return const Center(child: CircularProgressIndicator());
         final docs = snapshot.data!.docs;
         return ListView(
           children: [
@@ -100,8 +158,14 @@ class _UsersTab extends StatelessWidget {
                         content: Form(
                           key: _formKey,
                           child: TextFormField(
-                            decoration: const InputDecoration(labelText: 'CA Email'),
-                            validator: (v) => v == null || v.isEmpty ? 'Enter email' : null,
+                            decoration: const InputDecoration(
+                              labelText: 'CA Email',
+                            ),
+                            validator:
+                                (v) =>
+                                    v == null || v.isEmpty
+                                        ? 'Enter email'
+                                        : null,
                             onSaved: (v) => _email = v,
                           ),
                         ),
@@ -115,23 +179,36 @@ class _UsersTab extends StatelessWidget {
                               if (_formKey.currentState?.validate() ?? false) {
                                 _formKey.currentState?.save();
                                 // Find user by email
-                                final userQuery = await FirebaseFirestore.instance.collection('users').where('email', isEqualTo: _email).get();
+                                final userQuery =
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .where('email', isEqualTo: _email)
+                                        .get();
                                 if (userQuery.docs.isNotEmpty) {
-                                  await userQuery.docs.first.reference.update({'role': 'ca'});
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('User promoted to CA!')),
-                                  );
-                                } else {
-                                  // Create new CA user doc
-                                  await FirebaseFirestore.instance.collection('users').add({
-                                    'email': _email,
+                                  await userQuery.docs.first.reference.update({
                                     'role': 'ca',
-                                    'createdAt': FieldValue.serverTimestamp(),
                                   });
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('CA registered!')),
+                                    const SnackBar(
+                                      content: Text('User promoted to CA!'),
+                                    ),
+                                  );
+                                } else {
+                                  // Create new CA user doc
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .add({
+                                        'email': _email,
+                                        'role': 'ca',
+                                        'createdAt':
+                                            FieldValue.serverTimestamp(),
+                                      });
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('CA registered!'),
+                                    ),
                                   );
                                 }
                               }
@@ -148,20 +225,113 @@ class _UsersTab extends StatelessWidget {
             const Divider(),
             ...docs.map((doc) {
               final data = doc.data() as Map<String, dynamic>;
-              return ListTile(
-                title: Text(data['email'] ?? 'No Email'),
-                subtitle: Text('Role: ${data['role'] ?? 'unknown'}'),
-                trailing: DropdownButton<String>(
-                  value: data['role'],
-                  items: const [
-                    DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                    DropdownMenuItem(value: 'ca', child: Text('CA')),
-                    DropdownMenuItem(value: 'recipient', child: Text('Recipient')),
-                    DropdownMenuItem(value: 'viewer', child: Text('Viewer')),
-                  ],
-                  onChanged: (role) async {
-                    await doc.reference.update({'role': role});
-                  },
+              final validRoles = ['admin', 'ca', 'recipient', 'viewer'];
+              final currentRole =
+                  validRoles.contains(data['role']) ? data['role'] : 'admin';
+              Color roleColor;
+              switch (currentRole) {
+                case 'admin':
+                  roleColor = Colors.teal;
+                  break;
+                case 'ca':
+                  roleColor = Colors.blue;
+                  break;
+                case 'recipient':
+                  roleColor = Colors.green;
+                  break;
+                case 'viewer':
+                  roleColor = Colors.orange;
+                  break;
+                default:
+                  roleColor = Colors.grey;
+              }
+              return Card(
+                elevation: 6,
+                margin: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 20,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      Icon(Icons.email, color: Colors.teal, size: 28),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              data['email'] ?? '',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: roleColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.verified,
+                                    size: 16,
+                                    color: roleColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    currentRole[0].toUpperCase() +
+                                        currentRole.substring(1),
+                                    style: TextStyle(
+                                      color: roleColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      DropdownButton<String>(
+                        value: currentRole,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'admin',
+                            child: Text('Admin'),
+                          ),
+                          DropdownMenuItem(value: 'ca', child: Text('CA')),
+                          DropdownMenuItem(
+                            value: 'recipient',
+                            child: Text('Recipient'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'viewer',
+                            child: Text('Viewer'),
+                          ),
+                        ],
+                        onChanged: (role) async {
+                          await doc.reference.update({'role': role});
+                        },
+                        iconEnabledColor: Colors.teal,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }).toList(),
@@ -176,7 +346,12 @@ class _DashboardActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  const _DashboardActionCard({required this.icon, required this.label, required this.onTap, super.key});
+  const _DashboardActionCard({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +369,11 @@ class _DashboardActionCard extends StatelessWidget {
             children: [
               Icon(icon, size: 40, color: Colors.teal),
               const SizedBox(height: 16),
-              Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
             ],
           ),
         ),
@@ -222,30 +401,38 @@ class _ValidationRulesTabState extends State<ValidationRulesTab> {
 
   Future<void> _loadValidationRules() async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('validation_rules').doc('default').get();
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('validation_rules')
+              .doc('default')
+              .get();
       if (doc.exists) {
         final data = doc.data()!;
         setState(() {
-          _requiredFields = Map<String, bool>.from(data['requiredFields'] ?? {});
-          _fieldValidations = Map<String, String>.from(data['fieldValidations'] ?? {});
+          _requiredFields = Map<String, bool>.from(
+            data['requiredFields'] ?? {},
+          );
+          _fieldValidations = Map<String, String>.from(
+            data['fieldValidations'] ?? {},
+          );
           _isLoading = false;
         });
       } else {
         // Set default values
         setState(() {
           _requiredFields = {
-            'name': true,
-            'organization': true,
-            'purpose': true,
-            'issueDate': true,
-            'expiryDate': false,
+            'Name': true,
+            'Organization': true,
+            'Purpose': true,
+            'Issue Date': true,
+            'Expiry Date': false,
           };
           _fieldValidations = {
-            'name': 'min:2,max:100',
-            'organization': 'min:2,max:100',
-            'purpose': 'min:5,max:500',
-            'issueDate': 'future_date_allowed:false',
-            'expiryDate': 'future_date_required:true',
+            'Name': 'min:2,max:100',
+            'Organization': 'min:2,max:100',
+            'Purpose': 'min:5,max:500',
+            'Issue Date': 'future_date_allowed:false',
+            'ExpiryDate': 'future_date_required:true',
           };
           _isLoading = false;
         });
@@ -257,19 +444,22 @@ class _ValidationRulesTabState extends State<ValidationRulesTab> {
 
   Future<void> _saveValidationRules() async {
     try {
-      await FirebaseFirestore.instance.collection('validation_rules').doc('default').set({
-        'requiredFields': _requiredFields,
-        'fieldValidations': _fieldValidations,
-        'updatedAt': FieldValue.serverTimestamp(),
-        'updatedBy': FirebaseAuth.instance.currentUser?.email ?? 'admin',
-      });
+      await FirebaseFirestore.instance
+          .collection('validation_rules')
+          .doc('default')
+          .set({
+            'requiredFields': _requiredFields,
+            'fieldValidations': _fieldValidations,
+            'updatedAt': FieldValue.serverTimestamp(),
+            'updatedBy': FirebaseAuth.instance.currentUser?.email ?? 'admin',
+          });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Validation rules saved successfully!')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving rules: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving rules: $e')));
     }
   }
 
@@ -279,75 +469,154 @@ class _ValidationRulesTabState extends State<ValidationRulesTab> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Required Fields Configuration',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    ..._requiredFields.entries.map((entry) => CheckboxListTile(
-                      title: Text(entry.key),
-                      subtitle: Text('Certificate must have this field'),
-                      value: entry.value,
-                      onChanged: (value) {
-                        setState(() {
-                          _requiredFields[entry.key] = value ?? false;
-                        });
-                      },
-                    )),
-                  ],
+    return Container(
+      color: Colors.teal[50],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Required Fields Section
+              Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Field Validation Rules',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    ..._fieldValidations.entries.map((entry) => ListTile(
-                      title: Text(entry.key),
-                      subtitle: Text(entry.value),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _editValidationRule(entry.key, entry.value),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.check_box, color: Colors.teal, size: 26),
+                          SizedBox(width: 10),
+                          Text(
+                            'Required Fields Configuration',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
-                    )),
-                  ],
+                      const SizedBox(height: 18),
+                      ..._requiredFields.entries.map(
+                        (entry) => SwitchListTile(
+                          title: Text(
+                            entry.key.isNotEmpty
+                                ? entry.key[0].toUpperCase() +
+                                    entry.key.substring(1)
+                                : '',
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          subtitle: const Text(
+                            'Certificate must have this field',
+                          ),
+                          value: entry.value,
+                          activeColor: Colors.teal,
+                          onChanged: (value) {
+                            setState(() {
+                              _requiredFields[entry.key] = value;
+                            });
+                          },
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _saveValidationRules,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+              const SizedBox(height: 24),
+              // Field Validation Rules Section
+              Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                child: const Text('Save Validation Rules', style: TextStyle(fontSize: 16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.rule, color: Colors.teal, size: 26),
+                          SizedBox(width: 10),
+                          Text(
+                            'Field Validation Rules',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      ..._fieldValidations.entries.map(
+                        (entry) => Column(
+                          children: [
+                            ListTile(
+                              title: Text(
+                                entry.key.isNotEmpty
+                                    ? entry.key[0].toUpperCase() +
+                                        entry.key.substring(1)
+                                    : '',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              subtitle: Text(entry.value),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.teal,
+                                ),
+                                onPressed:
+                                    () => _editValidationRule(
+                                      entry.key,
+                                      entry.value,
+                                    ),
+                              ),
+                            ),
+                            const Divider(height: 1),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _saveValidationRules,
+                  icon: const Icon(Icons.save, color: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    elevation: 4,
+                  ),
+                  label: const Text('Save Validation Rules'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -357,31 +626,32 @@ class _ValidationRulesTabState extends State<ValidationRulesTab> {
     final controller = TextEditingController(text: currentRule);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit Validation Rule for $field'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Validation Rule',
-            hintText: 'e.g., min:2,max:100',
+      builder:
+          (context) => AlertDialog(
+            title: Text('Edit Validation Rule for $field'),
+            content: TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'Validation Rule',
+                hintText: 'e.g., min:2,max:100',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _fieldValidations[field] = controller.text;
+                  });
+                  Navigator.pop(context);
+                },
+                child: const Text('Save'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _fieldValidations[field] = controller.text;
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -390,17 +660,19 @@ class _RuleFlagsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('rule_flags')
-          .orderBy('createdAt', descending: true)
-          .limit(50)
-          .snapshots(),
+      stream:
+          FirebaseFirestore.instance
+              .collection('rule_flags')
+              .orderBy('createdAt', descending: true)
+              .limit(50)
+              .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
         final flags = snapshot.data!.docs;
-        
+
         if (flags.isEmpty) {
           return const Center(
             child: Column(
@@ -408,9 +680,15 @@ class _RuleFlagsTab extends StatelessWidget {
               children: [
                 Icon(Icons.security, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No security flags detected', style: TextStyle(fontSize: 18)),
+                Text(
+                  'No security flags detected',
+                  style: TextStyle(fontSize: 18),
+                ),
                 SizedBox(height: 8),
-                Text('All systems are running normally', style: TextStyle(color: Colors.grey)),
+                Text(
+                  'All systems are running normally',
+                  style: TextStyle(color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -422,10 +700,10 @@ class _RuleFlagsTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final flag = flags[index];
             final data = flag.data() as Map<String, dynamic>;
-            
+
             Color flagColor;
             IconData flagIcon;
-            
+
             switch (data['severity'] ?? 'info') {
               case 'high':
                 flagColor = Colors.red;
@@ -471,21 +749,25 @@ class _RuleFlagsTab extends StatelessWidget {
                     if (data['createdAt'] != null)
                       Text(
                         'Detected: ${data['createdAt'].toDate().toString().split('.')[0]}',
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                   ],
                 ),
                 trailing: PopupMenuButton(
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'resolve',
-                      child: Text('Mark as Resolved'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('Delete Flag'),
-                    ),
-                  ],
+                  itemBuilder:
+                      (context) => [
+                        const PopupMenuItem(
+                          value: 'resolve',
+                          child: Text('Mark as Resolved'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Delete Flag'),
+                        ),
+                      ],
                   onSelected: (value) async {
                     if (value == 'resolve') {
                       await flag.reference.update({
@@ -516,12 +798,20 @@ class _PendingApprovalsTab extends StatelessWidget {
         children: [
           const Padding(
             padding: EdgeInsets.all(16.0),
-            child: Text('Certificate Requests', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            child: Text(
+              'Certificate Requests',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('certificate_requests').orderBy('requestedAt', descending: true).snapshots(),
+            stream:
+                FirebaseFirestore.instance
+                    .collection('certificate_requests')
+                    .orderBy('requestedAt', descending: true)
+                    .snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+              if (!snapshot.hasData)
+                return const Center(child: CircularProgressIndicator());
               final docs = snapshot.data!.docs;
               if (docs.isEmpty) {
                 return const Padding(
@@ -537,10 +827,15 @@ class _PendingApprovalsTab extends StatelessWidget {
                   final doc = docs[index];
                   final data = doc.data() as Map<String, dynamic>;
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     child: ListTile(
                       title: Text('Requested by: ${data['requestedBy'] ?? ''}'),
-                      subtitle: Text('Purpose: ${data['purpose'] ?? ''}\nRequested at: ${data['requestedAt'] != null ? data['requestedAt'].toDate().toString().split(' ')[0] : ''}'),
+                      subtitle: Text(
+                        'Purpose: ${data['purpose'] ?? ''}\nRequested at: ${data['requestedAt'] != null ? data['requestedAt'].toDate().toString().split(' ')[0] : ''}',
+                      ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         tooltip: 'Remove Request',
@@ -548,22 +843,31 @@ class _PendingApprovalsTab extends StatelessWidget {
                           // Show confirmation dialog
                           final confirmed = await showDialog<bool>(
                             context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Confirm Deletion'),
-                              content: const Text('Are you sure you want to remove this certificate request?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
-                                  child: const Text('Cancel'),
+                            builder:
+                                (context) => AlertDialog(
+                                  title: const Text('Confirm Deletion'),
+                                  content: const Text(
+                                    'Are you sure you want to remove this certificate request?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () =>
+                                              Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.of(context).pop(true),
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
-                                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                ),
-                              ],
-                            ),
                           );
-                          
+
                           if (confirmed == true) {
                             await doc.reference.delete();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -580,12 +884,20 @@ class _PendingApprovalsTab extends StatelessWidget {
           ),
           const Padding(
             padding: EdgeInsets.all(16.0),
-            child: Text('Physical Certificate Upload Approvals', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            child: Text(
+              'Physical Certificate Upload Approvals',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('physical_certificate_uploads').orderBy('uploadedAt', descending: true).snapshots(),
+            stream:
+                FirebaseFirestore.instance
+                    .collection('physical_certificate_uploads')
+                    .orderBy('uploadedAt', descending: true)
+                    .snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+              if (!snapshot.hasData)
+                return const Center(child: CircularProgressIndicator());
               final docs = snapshot.data!.docs;
               if (docs.isEmpty) {
                 return const Padding(
@@ -601,10 +913,15 @@ class _PendingApprovalsTab extends StatelessWidget {
                   final doc = docs[index];
                   final data = doc.data() as Map<String, dynamic>;
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     child: ListTile(
                       title: Text('Name: ${data['name'] ?? ''}'),
-                      subtitle: Text('Purpose: ${data['purpose'] ?? ''}\nUploaded by: ${data['uploadedBy'] ?? ''}\nStatus: ${data['status'] ?? ''}'),
+                      subtitle: Text(
+                        'Purpose: ${data['purpose'] ?? ''}\nUploaded by: ${data['uploadedBy'] ?? ''}\nStatus: ${data['status'] ?? ''}',
+                      ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         tooltip: 'Remove Upload',
@@ -612,22 +929,31 @@ class _PendingApprovalsTab extends StatelessWidget {
                           // Show confirmation dialog
                           final confirmed = await showDialog<bool>(
                             context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Confirm Deletion'),
-                              content: const Text('Are you sure you want to remove this physical certificate upload?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
-                                  child: const Text('Cancel'),
+                            builder:
+                                (context) => AlertDialog(
+                                  title: const Text('Confirm Deletion'),
+                                  content: const Text(
+                                    'Are you sure you want to remove this physical certificate upload?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () =>
+                                              Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.of(context).pop(true),
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
-                                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                ),
-                              ],
-                            ),
                           );
-                          
+
                           if (confirmed == true) {
                             await doc.reference.delete();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -652,9 +978,14 @@ class _IssuedCertsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('certificates').orderBy('issueDate', descending: true).snapshots(),
+      stream:
+          FirebaseFirestore.instance
+              .collection('certificates')
+              .orderBy('issueDate', descending: true)
+              .snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData)
+          return const Center(child: CircularProgressIndicator());
         final docs = snapshot.data!.docs;
         if (docs.isEmpty) {
           return const Center(child: Text('No issued certificates found.'));
@@ -665,7 +996,7 @@ class _IssuedCertsTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
-            
+
             // Parse the issue date
             DateTime? issueDate;
             try {
@@ -675,18 +1006,19 @@ class _IssuedCertsTab extends StatelessWidget {
             } catch (e) {
               // Handle parsing error
             }
-            
+
             // Parse the expiry date
             String expiryDateText = '';
             if (data['expiryDate'] != null) {
               try {
                 final expiryDate = DateTime.parse(data['expiryDate']);
-                expiryDateText = 'Expiry Date: ${expiryDate.toString().split(' ')[0]}';
+                expiryDateText =
+                    'Expiry Date: ${expiryDate.toString().split(' ')[0]}';
               } catch (e) {
                 expiryDateText = 'Expiry Date: Invalid format';
               }
             }
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
               child: ListTile(
@@ -696,10 +1028,9 @@ class _IssuedCertsTab extends StatelessWidget {
                   children: [
                     Text('Organization: ${data['organization'] ?? 'Unknown'}'),
                     Text('Purpose: ${data['purpose'] ?? 'Unknown'}'),
-                    if (issueDate != null) 
+                    if (issueDate != null)
                       Text('Issue Date: ${issueDate.toString().split(' ')[0]}'),
-                    if (expiryDateText.isNotEmpty) 
-                      Text(expiryDateText),
+                    if (expiryDateText.isNotEmpty) Text(expiryDateText),
                   ],
                 ),
                 trailing: IconButton(
@@ -709,22 +1040,30 @@ class _IssuedCertsTab extends StatelessWidget {
                     // Show confirmation dialog
                     final confirmed = await showDialog<bool>(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Confirm Deletion'),
-                        content: const Text('Are you sure you want to delete this certificate? This action cannot be undone.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('Cancel'),
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('Confirm Deletion'),
+                            content: const Text(
+                              'Are you sure you want to delete this certificate? This action cannot be undone.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                          ),
-                        ],
-                      ),
                     );
-                    
+
                     if (confirmed == true) {
                       await doc.reference.delete();
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -740,4 +1079,4 @@ class _IssuedCertsTab extends StatelessWidget {
       },
     );
   }
-} 
+}
