@@ -8,11 +8,7 @@ class CaDashboard extends StatelessWidget {
   Future<String?> _getRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    final doc =
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     return doc.data()?['role'] as String?;
   }
 
@@ -41,11 +37,10 @@ class CaDashboard extends StatelessWidget {
           expand: false,
           builder: (context, scrollController) {
             return StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance
-                      .collection('certificate_requests')
-                      .orderBy('requestedAt', descending: true)
-                      .snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('certificate_requests')
+                  .orderBy('requestedAt', descending: true)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -62,17 +57,10 @@ class CaDashboard extends StatelessWidget {
                     final data = doc.data() as Map<String, dynamic>;
                     final status = data['status'] ?? 'Pending';
                     return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: ListTile(
-                        title: Text(
-                          'Requested by: ${data['requestedBy'] ?? ''}',
-                        ),
-                        subtitle: Text(
-                          'Purpose: ${data['purpose'] ?? ''}\nRequested at: ${data['requestedAt'] != null ? data['requestedAt'].toDate().toString().split(' ')[0] : ''}\nStatus: $status',
-                        ),
+                        title: Text('Requested by: ${data['requestedBy'] ?? ''}'),
+                        subtitle: Text('Purpose: ${data['purpose'] ?? ''}\nRequested at: ${data['requestedAt'] != null ? data['requestedAt'].toDate().toString().split(' ')[0] : ''}\nStatus: $status'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -81,27 +69,18 @@ class CaDashboard extends StatelessWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.teal,
                                   foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                                 onPressed: () async {
-                                  await doc.reference.update({
-                                    'status': 'Complete',
-                                  });
+                                  await doc.reference.update({'status': 'Complete'});
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Marked as complete.'),
-                                    ),
+                                    const SnackBar(content: Text('Marked as complete.')),
                                   );
                                 },
                                 child: const Text('Mark Complete'),
                               ),
                             if (status == 'Complete')
-                              const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                              ),
+                              const Icon(Icons.check_circle, color: Colors.green),
                           ],
                         ),
                       ),
@@ -116,287 +95,6 @@ class CaDashboard extends StatelessWidget {
     );
   }
 
-  void _showClientProfiles(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: SizedBox(
-              width: 400,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.business, color: Colors.teal),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Client Profiles',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                    const Divider(),
-                    SizedBox(
-                      height: 350,
-                      width: 350,
-                      child: StreamBuilder<QuerySnapshot>(
-                        stream:
-                            FirebaseFirestore.instance
-                                .collection('clients')
-                                .orderBy('name')
-                                .snapshots(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-                          final docs = snapshot.data!.docs;
-                          return ListView.builder(
-                            itemCount: docs.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index == docs.length) {
-                                // Add new client button
-                                return ListTile(
-                                  leading: const Icon(
-                                    Icons.add,
-                                    color: Colors.teal,
-                                  ),
-                                  title: const Text('Add New Client'),
-                                  onTap: () async {
-                                    final nameController =
-                                        TextEditingController();
-                                    final orgController =
-                                        TextEditingController();
-                                    await showDialog(
-                                      context: context,
-                                      builder:
-                                          (context) => AlertDialog(
-                                            title: const Text('Add Client'),
-                                            content: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                TextField(
-                                                  controller: nameController,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        labelText:
-                                                            'Client Name',
-                                                      ),
-                                                ),
-                                                TextField(
-                                                  controller: orgController,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        labelText:
-                                                            'Organization/Type',
-                                                      ),
-                                                ),
-                                              ],
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed:
-                                                    () =>
-                                                        Navigator.pop(context),
-                                                child: const Text('Cancel'),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () async {
-                                                  if (nameController
-                                                      .text
-                                                      .isNotEmpty) {
-                                                    await FirebaseFirestore
-                                                        .instance
-                                                        .collection('clients')
-                                                        .add({
-                                                          'name':
-                                                              nameController
-                                                                  .text,
-                                                          'organization':
-                                                              orgController
-                                                                  .text,
-                                                          'createdAt':
-                                                              FieldValue.serverTimestamp(),
-                                                        });
-                                                    Navigator.pop(context);
-                                                  }
-                                                },
-                                                child: const Text('Add'),
-                                              ),
-                                            ],
-                                          ),
-                                    );
-                                  },
-                                );
-                              }
-                              final doc = docs[index];
-                              final data = doc.data() as Map<String, dynamic>;
-                              return ListTile(
-                                leading: const Icon(
-                                  Icons.business,
-                                  color: Colors.teal,
-                                ),
-                                title: Text(data['name'] ?? ''),
-                                subtitle: Text(data['organization'] ?? ''),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.orange,
-                                      ),
-                                      onPressed: () async {
-                                        final nameController =
-                                            TextEditingController(
-                                              text: data['name'],
-                                            );
-                                        final orgController =
-                                            TextEditingController(
-                                              text: data['organization'],
-                                            );
-                                        await showDialog(
-                                          context: context,
-                                          builder:
-                                              (context) => AlertDialog(
-                                                title: const Text(
-                                                  'Edit Client',
-                                                ),
-                                                content: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    TextField(
-                                                      controller:
-                                                          nameController,
-                                                      decoration:
-                                                          const InputDecoration(
-                                                            labelText:
-                                                                'Client Name',
-                                                          ),
-                                                    ),
-                                                    TextField(
-                                                      controller: orgController,
-                                                      decoration:
-                                                          const InputDecoration(
-                                                            labelText:
-                                                                'Organization/Type',
-                                                          ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed:
-                                                        () => Navigator.pop(
-                                                          context,
-                                                        ),
-                                                    child: const Text('Cancel'),
-                                                  ),
-                                                  ElevatedButton(
-                                                    onPressed: () async {
-                                                      if (nameController
-                                                          .text
-                                                          .isNotEmpty) {
-                                                        await doc.reference
-                                                            .update({
-                                                              'name':
-                                                                  nameController
-                                                                      .text,
-                                                              'organization':
-                                                                  orgController
-                                                                      .text,
-                                                            });
-                                                        Navigator.pop(context);
-                                                      }
-                                                    },
-                                                    child: const Text('Save'),
-                                                  ),
-                                                ],
-                                              ),
-                                        );
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () async {
-                                        final confirm = await showDialog(
-                                          context: context,
-                                          builder:
-                                              (context) => AlertDialog(
-                                                title: const Text(
-                                                  'Delete Client',
-                                                ),
-                                                content: const Text(
-                                                  'Are you sure you want to delete this client?',
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed:
-                                                        () => Navigator.pop(
-                                                          context,
-                                                          false,
-                                                        ),
-                                                    child: const Text('Cancel'),
-                                                  ),
-                                                  ElevatedButton(
-                                                    onPressed:
-                                                        () => Navigator.pop(
-                                                          context,
-                                                          true,
-                                                        ),
-                                                    child: const Text('Delete'),
-                                                  ),
-                                                ],
-                                              ),
-                                        );
-                                        if (confirm == true) {
-                                          await doc.reference.delete();
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-    );
-  }
-
-  void _goToDonation(BuildContext context) {
-    Navigator.pushNamed(context, '/donation');
-  }
-
-  void _goToDonationHistory(BuildContext context) {
-    Navigator.pushNamed(context, '/donation_history');
-  }
-
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -405,67 +103,11 @@ class CaDashboard extends StatelessWidget {
       appBar: AppBar(
         title: const Text('CA Dashboard'),
         backgroundColor: Colors.teal,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder:
-                  (context) => AlertDialog(
-                    title: const Text('Logout'),
-                    content: const Text('Are you sure you want to logout?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 224, 12, 12),
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Close dialog
-                          _logout(context); // Logout
-                        },
-                        child: const Text('Logout'),
-                      ),
-                    ],
-                  ),
-            );
-          },
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Log out',
-            onPressed: () {
-            showDialog(
-              context: context,
-              builder:
-                  (context) => AlertDialog(
-                    title: const Text('Logout'),
-                    content: const Text('Are you sure you want to logout?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 224, 12, 12),
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Close dialog
-                          _logout(context); // Logout
-                        },
-                        child: const Text('Logout'),
-                      ),
-                    ],
-                  ),
-            );
-          },
+            onPressed: () => _logout(context),
           ),
         ],
       ),
@@ -478,274 +120,73 @@ class CaDashboard extends StatelessWidget {
           if (snapshot.data != 'ca') {
             return const Center(child: Text('Access denied.'));
           }
-          final sectionHeaderStyle = TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.teal[800],
-          );
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Hero Banner
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.teal[300]!, Colors.teal[100]!],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-                  child: Row(
-                    children: [
-                      Icon(Icons.verified, size: 48, color: Colors.white),
-                      const SizedBox(width: 18),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'Certificate Authority Portal',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 6),
-                            Text(
-                              'Manage, issue, and certify digital certificates with ease.',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Greeting Card
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  color: Colors.teal[400],
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 32,
-                          backgroundColor: Colors.white,
-                          child: Icon(Icons.verified, color: Colors.teal, size: 36),
-                        ),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Welcome, CA!',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                user?.email ?? '',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                // Action Cards Grid
-                Text(
-                  'Actions',
-                  style: sectionHeaderStyle,
-                ),
-                const SizedBox(height: 18),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 24,
-                  runSpacing: 24,
+                Row(
                   children: [
-                    _ModernActionCard(
-                      icon: Icons.add,
-                      label: 'Create/Issue Certificate',
-                      color: Colors.teal,
-                      onTap: () => _goToCreateCertificate(context),
+                    CircleAvatar(
+                      backgroundColor: Colors.teal[200],
+                      child: Icon(Icons.verified, color: Colors.white),
                     ),
-                    _ModernActionCard(
-                      icon: Icons.verified,
-                      label: 'Certify True Copies',
-                      color: Colors.orange,
-                      onTap: () => _goToCertifyTrueCopies(context),
-                    ),
-                    _ModernActionCard(
-                      icon: Icons.business,
-                      label: 'Manage Client Profiles',
-                      color: Colors.deepPurple,
-                      onTap: () => _showClientProfiles(context),
-                    ),
-                    _ModernActionCard(
-                      icon: Icons.history,
-                      label: 'Donation History',
-                      color: const Color.fromARGB(255, 5, 5, 141),
-                      onTap: () => _goToDonationHistory(context),
-                    ),
-                    _ModernActionCard(
-                      icon: Icons.favorite,
-                      label: 'Donate',
-                      color: Colors.pink,
-                      onTap: () => _goToDonation(context),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Welcome, ${user?.email ?? ''}',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
-                // Issued Certificates Section
-                Text(
-                  'Issued Certificates',
-                  style: sectionHeaderStyle,
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create/Issue Certificate'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => _goToCreateCertificate(context),
                 ),
                 const SizedBox(height: 16),
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.verified),
+                  label: const Text('Certify True Copies'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(18.0),
-                    child: StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('certificates')
-                          //.where('issuerId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-                          //.orderBy('issueDate', descending: true)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        final certs = snapshot.data!.docs;
-                        if (certs.isEmpty) {
-                          return const Text(
-                            'No certificates issued yet.',
-                          );
-                        }
-                        return Column(
-                          children: List.generate(certs.length, (index) {
-                            final doc = certs[index];
-                            final data = doc.data() as Map<String, dynamic>;
-                            final revoked = data['revoked'] == true;
-                            final title = data['title'] ?? 'Untitled';
-                            final recipient = data['recipientEmail'] ?? 'Unknown';
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16.0),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
-                                leading: CircleAvatar(
-                                  backgroundColor: Colors.teal[100],
-                                  child: Icon(Icons.description, color: Colors.teal[700]),
-                                ),
-                                title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                subtitle: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Recipient: $recipient'),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      children: [
-                                        Chip(
-                                          label: Text(revoked ? 'Revoked' : 'Active'),
-                                          backgroundColor: revoked ? Colors.red[50] : Colors.green[50],
-                                          labelStyle: TextStyle(
-                                            color: revoked ? Colors.red[700] : Colors.green[700],
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          visualDensity: VisualDensity.compact,
-                                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                trailing: IconButton(
-                                  icon: const Icon(
-                                    Icons.share,
-                                    color: Colors.teal,
-                                  ),
-                                  tooltip: 'Share Certificate',
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/share_certificate',
-                                      arguments: {
-                                        'certificateId': doc.id,
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                          }),
-                        );
-                      },
-                    ),
+                  onPressed: () => _goToCertifyTrueCopies(context),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.request_page),
+                  label: const Text('View Certificate Requests'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
+                  onPressed: () => _showCertificateRequests(context),
                 ),
                 const SizedBox(height: 32),
-                // Tips/Info Section
-                Card(
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  color: Colors.teal[100],
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.lightbulb_outline, color: Colors.teal, size: 24),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Tip: Always verify recipient details before issuing a certificate.',
-                            style: TextStyle(fontSize: 15, color: Colors.teal),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Footer
-                Center(
-                  child: Text(
-                    'Digital Certificate App v1.0.0\n© 2024 TrueCopy',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.teal[300], fontSize: 13),
-                  ),
-                ),
+                const Text('Other Features:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                const Text('• Add recipient name, organization, purpose, issue/expiry dates.'),
+                const Text('• Generate or upload certificate PDFs.'),
+                const Text('• Digitally sign certificates (watermark/signature).'),
+                const Text('• Share certificates using secure, token-protected links.'),
               ],
             ),
           );
@@ -753,65 +194,4 @@ class CaDashboard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ModernActionCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ModernActionCard({
-    Key? key,
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: 180,
-        height: 140,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.10),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(color: color.withOpacity(0.18), width: 2),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: color),
-            const SizedBox(height: 16),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: color,
-                height: 1.2,
-              ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+} 
