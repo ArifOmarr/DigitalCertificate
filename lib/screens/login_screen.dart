@@ -106,78 +106,86 @@ class LoginScreen extends StatelessWidget {
         ),
         child: Center(
           child: Card(
-            elevation: 16,
+            color: Colors.white,
+            elevation: 6,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(24),
             ),
             margin: const EdgeInsets.symmetric(horizontal: 24),
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: 36.0,
-                vertical: 40,
+                horizontal: 28.0,
+                vertical: 36,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo/Icon (use built-in Icon instead of SvgPicture)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 18),
-                    child: Icon(Icons.verified, size: 64, color: Colors.teal),
-                  ),
                   Text(
                     'Digital Certificate',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.teal[900],
+                      color: Colors.black87,
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     'Sign in to manage your certificates',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.teal[700],
+                      color: Colors.black54,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
-                  const SizedBox(height: 36),
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
                     child: ElevatedButton.icon(
-                      icon: Icon(Icons.login, size: 24),
+                      icon: Icon(Icons.login, size: 22),
                       label: const Text(
                         'Sign in with Google',
                         style: TextStyle(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.teal,
-                        shadowColor: Colors.teal.withOpacity(0.2),
-                        elevation: 4,
+                        backgroundColor: const Color(0xFF009688),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
+                          horizontal: 0,
+                          vertical: 14,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        side: const BorderSide(color: Colors.teal, width: 2),
                         textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                      ).copyWith(
-                        overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.hovered)) {
-                              return Colors.teal.withOpacity(0.08);
-                            }
-                            return null;
-                          },
-                        ),
                       ),
                       onPressed: () => _handleLogin(context),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  TextButton.icon(
+                    onPressed: () => Navigator.pushNamed(context, '/donation'),
+                    icon: const Icon(Icons.favorite, color: Colors.red),
+                    label: const Text(
+                      'Support Our Project',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                      minimumSize: Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      alignment: Alignment.center,
                     ),
                   ),
                 ],
