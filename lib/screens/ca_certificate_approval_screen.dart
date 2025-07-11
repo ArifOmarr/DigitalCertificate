@@ -9,6 +9,7 @@ class CaCertificateApprovalScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Certificate Approvals'),
+        
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
