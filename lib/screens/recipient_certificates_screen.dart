@@ -88,7 +88,7 @@ class RecipientCertificatesScreen extends StatelessWidget {
                               children: [
                                 Chip(
                                   label: Text(status),
-                                  backgroundColor: statusColor.withOpacity(0.15),
+                                  backgroundColor: statusColor.withValues(alpha: 0.15),
                                   labelStyle: TextStyle(color: statusColor, fontWeight: FontWeight.bold),
                                 ),
                               ],
@@ -109,10 +109,8 @@ class RecipientCertificatesScreen extends StatelessWidget {
                                 oneTime: false, // Or true for one-time use
                               );
                               // Development/Production switch for share link
-                              const bool isProduction = false; // Set to true when deploying!
                               const localDomain = 'http://10.113.19.22:3000'; // Your local IP and port
-                              const productionDomain = 'https://mycertificates.upm.edu.my'; // Real domain
-                              final link = '${isProduction ? productionDomain : localDomain}/#/shared/$token';
+                              final link = '$localDomain/#/shared/$token';
                               await Clipboard.setData(ClipboardData(text: link));
                               showDialog(
                                 context: context,
@@ -214,17 +212,17 @@ class RecipientCertificatesScreen extends StatelessWidget {
         }
       } else {
         // Mobile: Download and open with local app
-        final response = await http.get(Uri.parse(url));
-        if (response.statusCode == 200) {
-          final bytes = response.bodyBytes;
-          final dir = await getTemporaryDirectory();
-          final file = File('${dir.path}/temp_${DateTime.now().millisecondsSinceEpoch}.pdf');
-          await file.writeAsBytes(bytes);
-          await OpenFile.open(file.path);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to download PDF.')),
-          );
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/temp_${DateTime.now().millisecondsSinceEpoch}.pdf');
+        await file.writeAsBytes(bytes);
+        await OpenFile.open(file.path);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download PDF.')),
+        );
         }
       }
     } catch (e) {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math';
 import 'package:pdf/widgets.dart' as pw;
@@ -138,7 +137,7 @@ class _CaCreateCertificateScreenState extends State<CaCreateCertificateScreen> {
           final output = await getTemporaryDirectory();
           final file = File('${output.path}/certificate_${DateTime.now().millisecondsSinceEpoch}.pdf');
           await file.writeAsBytes(await pdf.save());
-          await ref.putFile(file);
+        await ref.putFile(file);
         }
         
         pdfUrl = await ref.getDownloadURL();
@@ -161,7 +160,7 @@ class _CaCreateCertificateScreenState extends State<CaCreateCertificateScreen> {
           // Mobile: Use putFile with File
           if (_pdfFile!.path != null) {
             final file = File(_pdfFile!.path!);
-            await ref.putFile(file);
+        await ref.putFile(file);
           } else {
             throw Exception('File path not available');
           }
@@ -189,6 +188,20 @@ class _CaCreateCertificateScreenState extends State<CaCreateCertificateScreen> {
         'signature': signature,
         'status': 'Valid',
         'createdAt': FieldValue.serverTimestamp(),
+      });
+      // Add approval request for admin dashboard
+      await FirebaseFirestore.instance.collection('approval_requests').add({
+        'to': 'admin', // or use actual admin email/ID if available
+        'certificateName': 'Certificate for ${_recipientName ?? ''}',
+        'certificateId': '', // you can link to the certificate if you have the ID
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+        'message': 'Certificate requires approval',
+        'organization': _organization,
+        'purpose': _purpose,
+        'requestedBy': 'CA',
+        'priority': 'high',
+        'recipientEmail': _recipientEmail,
       });
       setState(() => _isUploading = false);
       ScaffoldMessenger.of(context).showSnackBar(
