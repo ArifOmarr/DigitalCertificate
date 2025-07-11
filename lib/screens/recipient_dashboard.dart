@@ -8,7 +8,11 @@ class RecipientDashboard extends StatelessWidget {
   Future<String?> _getRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
     return doc.data()?['role'] as String?;
   }
 
@@ -51,11 +55,13 @@ class RecipientDashboard extends StatelessWidget {
                 if (formKey.currentState?.validate() ?? false) {
                   formKey.currentState?.save();
                   final user = FirebaseAuth.instance.currentUser;
-                  await FirebaseFirestore.instance.collection('certificate_requests').add({
-                    'requestedBy': user?.email,
-                    'purpose': purpose,
-                    'requestedAt': FieldValue.serverTimestamp(),
-                  });
+                  await FirebaseFirestore.instance
+                      .collection('certificate_requests')
+                      .add({
+                        'requestedBy': user?.email,
+                        'purpose': purpose,
+                        'requestedAt': FieldValue.serverTimestamp(),
+                      });
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Request submitted!')),
@@ -96,7 +102,10 @@ class RecipientDashboard extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              const Text('Welcome, Recipient!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Welcome, Recipient!',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 icon: const Icon(Icons.folder),

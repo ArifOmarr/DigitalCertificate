@@ -47,7 +47,10 @@ class ViewerDashboard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Welcome, ${user?.email ?? ''}',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -61,13 +64,21 @@ class ViewerDashboard extends StatelessWidget {
                 minimumSize: const Size.fromHeight(56),
                 backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () => _goToSharedCertificates(context),
             ),
             const SizedBox(height: 32),
-            const Text('Viewer Features:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Viewer Features:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             const Text('• View certificates shared with you.'),
             const Text('• Verify certificate authenticity.'),
@@ -76,4 +87,4 @@ class ViewerDashboard extends StatelessWidget {
       ),
     );
   }
-} 
+}
